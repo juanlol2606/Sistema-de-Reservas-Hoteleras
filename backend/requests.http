@@ -1,0 +1,330 @@
+# Pruebas de la API de StayHub para la extensión "REST Client" de VS Code (humao.rest-client).
+# Antes: backend corriendo (pnpm dev:backend) y base con datos (pnpm seed).
+# Ejecuta las peticiones en orden con "Send Request"; varias guardan ids para las siguientes.
+
+@host = http://localhost:4000/api
+@hoy = {{$localDatetime "YYYY-MM-DD"}}
+@ayer = {{$localDatetime "YYYY-MM-DD" -1 d}}
+@entrada = {{$localDatetime "YYYY-MM-DD" 30 d}}
+@salida = {{$localDatetime "YYYY-MM-DD" 33 d}}
+@salidaExtendida = {{$localDatetime "YYYY-MM-DD" 34 d}}
+@fechaLejana = {{$localDatetime "YYYY-MM-DD" 37 d}}
+@haceSeisMeses = {{$localDatetime "YYYY-MM-DD" -180 d}}
+
+
+### 1. Login: devuelve el token que usan las demás peticiones
+# @name login
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@stayhub.com",
+  "password": "Admin123!"
+}
+
+@token = {{login.response.body.$.token}}
+
+
+### 2. Sin token las reservas responden 401
+GET {{host}}/reservas
+
+
+### 3. Habitaciones disponibles en las fechas elegidas (pública; ordenadas por precio)
+# @name disponibles
+GET {{host}}/habitaciones/disponibles?entrada={{entrada}}&salida={{salida}}&tipo=doble&precioMax=400000
+
+@habitacionId = {{disponibles.response.body.$.data[0]._id}}
+
+
+### 4. Un huésped para reservar
+# @name huespedes
+GET {{host}}/huespedes?limit=1
+Authorization: Bearer {{token}}
+
+@huespedId = {{huespedes.response.body.$.data[0]._id}}
+
+
+### 5. Crear reserva (reglas 1 a 5): el servidor calcula noches y total y congela el precio
+# @name nueva
+POST {{host}}/reservas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "huespedId": "{{huespedId}}",
+  "habitacionId": "{{habitacionId}}",
+  "fechaEntrada": "{{entrada}}",
+  "fechaSalida": "{{salida}}",
+  "numHuespedes": 2
+}
+
+@reservaId = {{nueva.response.body.$._id}}
+@hotelId = {{nueva.response.body.$.hotelId}}
+
+
+### 6. Consultar el detalle (huésped, hotel, pagos, totalPagado y saldo)
+GET {{host}}/reservas/{{reservaId}}
+Authorization: Bearer {{token}}
+
+
+### 7. Regla 1: la misma habitación en fechas que se traslapan -> 409
+POST {{host}}/reservas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "huespedId": "{{huespedId}}",
+  "habitacionId": "{{habitacionId}}",
+  "fechaEntrada": "{{entrada}}",
+  "fechaSalida": "{{salidaExtendida}}",
+  "numHuespedes": 1
+}
+
+
+### 8. Regla 2: la entrada ya pasó y la salida no es posterior -> 400
+POST {{host}}/reservas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "huespedId": "{{huespedId}}",
+  "habitacionId": "{{habitacionId}}",
+  "fechaEntrada": "{{ayer}}",
+  "fechaSalida": "{{ayer}}",
+  "numHuespedes": 1
+}
+
+
+### 9. Regla 3: más huéspedes que la capacidad de la habitación -> 400
+POST {{host}}/reservas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "huespedId": "{{huespedId}}",
+  "habitacionId": "{{habitacionId}}",
+  "fechaEntrada": "{{salidaExtendida}}",
+  "fechaSalida": "{{fechaLejana}}",
+  "numHuespedes": 20
+}
+
+
+### 10. Regla 4: habitación en mantenimiento (primero se busca una)
+# @name enMantenimiento
+GET {{host}}/habitaciones?estado=mantenimiento&limit=1
+
+@habitacionMantenimientoId = {{enMantenimiento.response.body.$.data[0]._id}}
+
+
+### 11. Regla 4: reservar esa habitación -> 409
+POST {{host}}/reservas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "huespedId": "{{huespedId}}",
+  "habitacionId": "{{habitacionMantenimientoId}}",
+  "fechaEntrada": "{{entrada}}",
+  "fechaSalida": "{{salida}}",
+  "numHuespedes": 1
+}
+
+
+### 12. Modificar la reserva (solo pendiente o confirmada): una noche más
+PUT {{host}}/reservas/{{reservaId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "huespedId": "{{huespedId}}",
+  "habitacionId": "{{habitacionId}}",
+  "fechaEntrada": "{{entrada}}",
+  "fechaSalida": "{{salidaExtendida}}",
+  "numHuespedes": 2
+}
+
+
+### 13. Regla 7: saltarse estados no se permite (pendiente a en_curso) -> 409
+PATCH {{host}}/reservas/{{reservaId}}/estado
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "en_curso" }
+
+
+### 14. Regla 6: un pago menor al 30 % deja la reserva pendiente
+# @name pago1
+POST {{host}}/reservas/{{reservaId}}/pagos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "monto": 50000, "metodo": "tarjeta" }
+
+@saldo = {{pago1.response.body.$.saldo}}
+
+
+### 15. Regla 6: un pago mayor al saldo -> 409
+POST {{host}}/reservas/{{reservaId}}/pagos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "monto": 999999999, "metodo": "efectivo" }
+
+
+### 16. Regla 6: pagar el saldo completo; al pasar el 30 % la reserva queda confirmada
+POST {{host}}/reservas/{{reservaId}}/pagos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "monto": {{saldo}}, "metodo": "transferencia" }
+
+
+### 17. Regla 7: confirmada a finalizada se salta en_curso -> 409
+PATCH {{host}}/reservas/{{reservaId}}/estado
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "finalizada" }
+
+
+### 18. Regla 7: confirmada a en_curso
+PATCH {{host}}/reservas/{{reservaId}}/estado
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "en_curso" }
+
+
+### 19. Regla 7: finalizar (exige saldo 0)
+PATCH {{host}}/reservas/{{reservaId}}/estado
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "finalizada" }
+
+
+### 20. Eliminar una reserva con pagos o finalizada -> 409 (se cancelan o finalizan, no se borran)
+DELETE {{host}}/reservas/{{reservaId}}
+Authorization: Bearer {{token}}
+
+
+### 21. Regla 8: reseñar la reserva finalizada (recalcula la calificación del hotel)
+# @name resena
+POST {{host}}/resenas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "reservaId": "{{reservaId}}",
+  "puntuacion": 5,
+  "comentario": "Excelente atención y habitación impecable."
+}
+
+@resenaId = {{resena.response.body.$._id}}
+
+
+### 22. Regla 8: una segunda reseña de la misma reserva -> 409
+POST {{host}}/resenas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "reservaId": "{{reservaId}}", "puntuacion": 1 }
+
+
+### 23. El hotel ya muestra el nuevo calificacionPromedio
+GET {{host}}/hoteles/{{hotelId}}
+
+
+### 24. Reseñas del hotel (públicas, con nombre del huésped y del hotel)
+GET {{host}}/resenas?hotelId={{hotelId}}&limit=5
+
+
+### 25. Eliminar la reseña recalcula el promedio otra vez
+DELETE {{host}}/resenas/{{resenaId}}
+Authorization: Bearer {{token}}
+
+
+### 26. Regla 8: reseñar una reserva que no está finalizada -> 409 (usa una pendiente del seed)
+# @name pendiente
+GET {{host}}/reservas?estado=pendiente&limit=1
+Authorization: Bearer {{token}}
+
+@reservaPendienteId = {{pendiente.response.body.$.data[0]._id}}
+
+
+### 26b. Reseñar esa reserva pendiente -> 409
+POST {{host}}/resenas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "reservaId": "{{reservaPendienteId}}", "puntuacion": 4 }
+
+
+### 27. Listado de reservas con filtros: estado, hotel, rango de fechas de entrada y huésped (id o texto)
+GET {{host}}/reservas?estado=finalizada&hotelId={{hotelId}}&desde={{haceSeisMeses}}&hasta={{hoy}}&huesped=garcia&page=1&limit=5
+Authorization: Bearer {{token}}
+
+
+### 28. Cancelar una reserva pendiente (los pagos ya hechos se conservan)
+PATCH {{host}}/reservas/{{reservaPendienteId}}/estado
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "estado": "cancelada" }
+
+
+# ---------------------------------------------------------------------------------------------
+# Reportes (Aggregation Pipeline). Todos exigen token y aceptan ?desde=&hasta=&ciudad= (AAAA-MM-DD).
+#  - Los que miden dinero (ingresos, métodos, huéspedes) filtran por la fecha de cada pago.
+#  - Reservas por ciudad, tipos de habitación y cancelaciones filtran por la fecha de entrada.
+#  - Top de hoteles filtra por la fecha de la reseña. La ciudad no aplica a reservas-por-ciudad.
+# ---------------------------------------------------------------------------------------------
+
+### 29. Ingresos cobrados por hotel y mes
+GET {{host}}/reportes/ingresos-por-mes?desde={{haceSeisMeses}}&hasta={{hoy}}
+Authorization: Bearer {{token}}
+
+
+### 30. Reservas (no canceladas) por ciudad
+GET {{host}}/reportes/reservas-por-ciudad
+Authorization: Bearer {{token}}
+
+
+### 31. Top de hoteles por promedio de reseñas (mínimo 3 reseñas, máximo 5 hoteles)
+GET {{host}}/reportes/top-hoteles
+Authorization: Bearer {{token}}
+
+
+### 32. Tipos de habitación: ventas y precio medio por noche (la ciudad se escribe sin importar tildes)
+GET {{host}}/reportes/tipos-habitacion?ciudad=medellin
+Authorization: Bearer {{token}}
+
+
+### 33. Tasa de cancelación por hotel
+GET {{host}}/reportes/cancelaciones?desde={{haceSeisMeses}}&hasta={{hoy}}
+Authorization: Bearer {{token}}
+
+
+### 34. Top 10 de huéspedes por lo pagado
+GET {{host}}/reportes/top-huespedes
+Authorization: Bearer {{token}}
+
+
+### 35. Pagos por método, con su participación
+GET {{host}}/reportes/pagos-por-metodo?desde={{haceSeisMeses}}&hasta={{hoy}}
+Authorization: Bearer {{token}}
+
+
+### 36. Ocupación de los últimos 30 días (sin fechas es el rango por defecto)
+GET {{host}}/reportes/ocupacion
+Authorization: Bearer {{token}}
+
+
+### 37. Ocupación de un rango propio, solo en Cartagena
+GET {{host}}/reportes/ocupacion?desde={{haceSeisMeses}}&hasta={{hoy}}&ciudad=cartagena
+Authorization: Bearer {{token}}
+
+
+### 38. Rango inválido (desde posterior a hasta) -> 400
+GET {{host}}/reportes/ingresos-por-mes?desde={{hoy}}&hasta={{ayer}}
+Authorization: Bearer {{token}}

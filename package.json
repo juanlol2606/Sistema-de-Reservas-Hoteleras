@@ -1,0 +1,18 @@
+{
+  "name": "stayhub",
+  "version": "1.0.0",
+  "description": "StayHub: reservas para una red de hoteles pequeños (backend y frontend en un workspace de pnpm)",
+  "private": true,
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=20.19.0 <25"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "dev:backend": "pnpm --filter stayhub-backend dev",
+    "dev:frontend": "pnpm --filter stayhub-frontend dev",
+    "seed": "pnpm --filter stayhub-backend seed",
+    "build": "pnpm -r build",
+    "start": "pnpm --filter stayhub-backend start"
+  }
+}
