@@ -1,0 +1,119 @@
+:root {
+  --fuente-titulos: 'Cormorant Garamond', Georgia, serif;
+  --fuente-texto: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --fondo: #f6f2eb;
+  --superficie: #ffffff;
+  --superficie-suave: #fbf8f2;
+  --superficie-campo: #fbf9f5;
+  --oscuro: #17140f;
+  --oscuro-suave: #2a251e;
+  --oscuro-borde: #4a4235;
+
+  --texto: #1e1a16;
+  --texto-intermedio: #3a332b;
+  --texto-suave: #6b6054;
+  --texto-tenue: #8a8073;
+  --texto-sobre-oscuro: #b9b0a2;
+
+  --dorado: #c9a365;
+  --dorado-claro: #e6c487;
+  --dorado-tinta: #7a5b2c;
+  --dorado-tinta-oscura: #5a421e;
+  --dorado-foco: #a07a3e;
+  --dorado-fondo: #efe6d6;
+
+  --borde: #e7dfd2;
+  --borde-campo: #dcd2c2;
+  --borde-suave: #efe8dc;
+  --borde-fila: #f0eae0;
+  --borde-punteado: #cdbfa8;
+  --marco-foto: #ede6da;
+  --marco-foto-inactivo: #e6e2dc;
+  --marco-foto-trama: rgb(122 91 44 / 7%);
+
+  --exito: #24573a;
+  --exito-fondo: #e3efe5;
+  --neutro: #4f4a43;
+  --neutro-fondo: #ece9e4;
+  --info: #24467a;
+  --info-fondo: #e4ecf7;
+  --aviso: #7a4a00;
+  --aviso-fondo: #fbefd9;
+  --activo: #1f5a52;
+  --activo-fondo: #dfeeeb;
+  --peligro: #9a2b20;
+  --peligro-fondo: #f8e3e0;
+  --peligro-fuerte: #a83226;
+  --peligro-borde: #e6b9b2;
+
+  --grafica-ambar: #b08a4e;
+  --grafica-verde: #2e6b64;
+  --grafica-azul: #4b5d8a;
+  --grafica-ladrillo: #9c4f3a;
+  --grafica-trazo: #e7dfd2;
+  --progreso-completo: #2f7a52;
+  --progreso-fondo: #efe8dc;
+
+  --radio-campo: 10px;
+  --radio-tarjeta: 16px;
+  --radio-tarjeta-grande: 18px;
+  --radio-modal: 20px;
+  --radio-pildora: 999px;
+
+  --sombra-filtros: 0 20px 40px -24px rgb(23 20 15 / 35%);
+  --sombra-tarjeta: 0 18px 40px -18px rgb(23 20 15 / 35%);
+  --sombra-modal: 0 40px 80px -30px rgb(0 0 0 / 60%);
+  --sombra-aviso: 0 12px 30px -10px rgb(23 20 15 / 45%);
+
+  --ancho-maximo: 1240px;
+  --margen-pagina: 24px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente-texto);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--texto);
+  background: var(--fondo);
+}
+
+body.sin-scroll {
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--fuente-titulos);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+a {
+  color: var(--dorado-tinta);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--dorado-tinta-oscura);
+}
+
+:focus-visible {
+  outline: 2px solid var(--dorado-foco);
+  outline-offset: 1px;
+}

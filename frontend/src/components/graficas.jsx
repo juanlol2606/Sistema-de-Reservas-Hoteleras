@@ -1,15 +1,13 @@
-import { Bar, BarChart, CartesianGrid, Cell, Legend, LabelList, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ETIQUETAS_METODO_PAGO, ETIQUETAS_TIPO_HABITACION } from '../utils/catalogos.js';
-import { formatearMes, formatearPesos } from '../utils/formato.js';
+import { abreviarPesos, formatearMes, formatearMesCorto, formatearPesos, formatearPorcentaje } from '../utils/formato.js';
 import TablaDatos from './TablaDatos.jsx';
 
-const PALETA = ['#0f766e', '#d97706', '#4f46e5', '#db2777', '#475569', '#16a34a', '#0891b2', '#9333ea'];
-const COLOR_EJE = '#5b6b7b';
-const ALTURA = 300;
+const COLORES = ['var(--grafica-verde)', 'var(--grafica-ambar)', 'var(--grafica-azul)', 'var(--grafica-ladrillo)'];
+const AMBAR = COLORES[1];
+// La barra más larga ocupa este porcentaje del espacio: deja sitio para el número que la acompaña.
+const ESCALA = 85;
 
-const sumar = (filas, campo) => filas.reduce((suma, fila) => suma + fila[campo], 0);
-const abreviarPesos = (valor) => (valor >= 1_000_000 ? `${(valor / 1_000_000).toFixed(1)} M` : `${Math.round(valor / 1000)} mil`);
-const alturaHorizontal = (filas) => Math.max(180, filas.length * 44 + 40);
+export const sumar = (filas, campo) => filas.reduce((suma, fila) => suma + fila[campo], 0);
 
 function Cifras({ cifras }) {
   return (
@@ -25,45 +23,96 @@ function Cifras({ cifras }) {
 }
 
 // Barras horizontales: ideales cuando las etiquetas (hoteles, ciudades, huéspedes) son largas.
-function BarrasHorizontales({ filas, etiqueta, valor, formato, color = PALETA[0], dominio }) {
+function BarrasHorizontales({ filas, etiqueta, valor, formato, color = COLORES[0], dominio }) {
+  const maximo = dominio ?? Math.max(...filas.map((fila) => fila[valor]), 1);
+
   return (
-    <ResponsiveContainer width="100%" height={alturaHorizontal(filas)}>
-      <BarChart data={filas} layout="vertical" margin={{ left: 8, right: 64 }}>
-        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-        <XAxis type="number" hide domain={dominio} />
-        <YAxis type="category" dataKey={etiqueta} width={150} tick={{ fill: COLOR_EJE, fontSize: 12 }} tickLine={false} />
-        <Tooltip formatter={(v) => formato(v)} cursor={{ fill: '#f1f5f9' }} />
-        <Bar dataKey={valor} fill={color} radius={[0, 4, 4, 0]}>
-          <LabelList dataKey={valor} position="right" formatter={formato} fill={COLOR_EJE} fontSize={12} />
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="barras-h">
+      {filas.map((fila, indice) => (
+        <div key={`${fila[etiqueta]}-${indice}`} className="barra-h">
+          <span className="barra-h-etiqueta">{fila[etiqueta]}</span>
+          <div className="barra-h-pista">
+            <span className="barra-h-relleno" style={{ width: `${(fila[valor] / maximo) * ESCALA}%`, background: color }} />
+            <span className="barra-h-valor">{formato(fila[valor])}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Columnas: [{ etiqueta, valor, color }].
+function BarrasVerticales({ columnas, formato, descripcion, alto }) {
+  const maximo = Math.max(...columnas.map((columna) => columna.valor), 1);
+
+  return (
+    <div className="barras-v" role="img" aria-label={descripcion} style={{ '--alto': `${alto}px` }}>
+      <div className="barras-v-guias" aria-hidden="true">
+        {[0, 1, 2, 3, 4].map((guia) => (
+          <span key={guia} />
+        ))}
+      </div>
+      <div className="barras-v-columnas">
+        {columnas.map((columna) => (
+          <div key={columna.etiqueta} className="barra-v">
+            <div className="barra-v-zona">
+              <span className="barra-v-barra" style={{ height: `${(columna.valor / maximo) * ESCALA}%`, background: columna.color }}>
+                <span className="barra-v-valor">{formato(columna.valor)}</span>
+              </span>
+            </div>
+            <span className="barra-v-etiqueta">{columna.etiqueta}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Segmentos: [{ nombre, porcentaje, color }]. El anillo es un conic-gradient; el centro muestra `centro`.
+function Dona({ segmentos, centro, descripcion }) {
+  let acumulado = 0;
+  const tramos = segmentos.map(({ color, porcentaje }) => {
+    const inicio = acumulado;
+    acumulado += porcentaje;
+    return `${color} ${inicio}% ${acumulado}%`;
+  });
+
+  return (
+    <div className="dona-contenedor">
+      <div className="dona" role="img" aria-label={descripcion} style={{ background: `conic-gradient(${tramos.join(', ')})` }}>
+        <div className="dona-centro">
+          <strong>{centro.valor}</strong>
+          <span>{centro.etiqueta}</span>
+        </div>
+      </div>
+      <ul className="leyenda">
+        {segmentos.map(({ nombre, porcentaje, color }) => (
+          <li key={nombre}>
+            <span className="leyenda-color" style={{ background: color }} aria-hidden="true" />
+            <span className="leyenda-nombre">{nombre}</span>
+            <strong>{formatearPorcentaje(porcentaje)}</strong>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
 export function GraficaIngresos({ data }) {
-  const meses = [...new Set(data.map((fila) => fila.mes))].sort();
-  const hoteles = [...new Set(data.map((fila) => fila.hotel))].sort();
-  const filas = meses.map((mes) => ({
-    mes,
-    ...Object.fromEntries(data.filter((fila) => fila.mes === mes).map((fila) => [fila.hotel, fila.ingresos])),
-  }));
+  const totalesPorMes = [...data.reduce((porMes, fila) => porMes.set(fila.mes, (porMes.get(fila.mes) ?? 0) + fila.ingresos), new Map())].sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
+  const columnas = totalesPorMes.map(([mes, total]) => ({ etiqueta: formatearMesCorto(mes), valor: total, color: AMBAR }));
 
   return (
     <>
       <Cifras cifras={[{ valor: formatearPesos(sumar(data, 'ingresos')), etiqueta: 'cobrado en el periodo' }, { valor: sumar(data, 'pagos'), etiqueta: 'pagos registrados' }]} />
-      <ResponsiveContainer width="100%" height={ALTURA}>
-        <BarChart data={filas}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="mes" tickFormatter={formatearMes} tick={{ fill: COLOR_EJE, fontSize: 12 }} />
-          <YAxis tickFormatter={abreviarPesos} width={64} tick={{ fill: COLOR_EJE, fontSize: 12 }} />
-          <Tooltip formatter={(v, nombre) => [formatearPesos(v), nombre]} labelFormatter={formatearMes} />
-          <Legend />
-          {hoteles.map((hotel, i) => (
-            <Bar key={hotel} dataKey={hotel} stackId="ingresos" fill={PALETA[i % PALETA.length]} />
-          ))}
-        </BarChart>
-      </ResponsiveContainer>
+      <BarrasVerticales
+        columnas={columnas}
+        formato={abreviarPesos}
+        alto={280}
+        descripcion={`Ingresos por mes: ${columnas.map((c) => `${c.etiqueta} ${abreviarPesos(c.valor)}`).join(', ')}`}
+      />
       <TablaDatos
         filas={data}
         columnas={[
@@ -81,7 +130,7 @@ export function GraficaReservasPorCiudad({ data }) {
   return (
     <>
       <Cifras cifras={[{ valor: sumar(data, 'reservas'), etiqueta: 'reservas no canceladas' }, { valor: formatearPesos(sumar(data, 'valorReservado')), etiqueta: 'valor reservado' }]} />
-      <BarrasHorizontales filas={data} etiqueta="ciudad" valor="reservas" formato={(v) => `${v}`} />
+      <BarrasHorizontales filas={data} etiqueta="ciudad" valor="reservas" formato={String} />
       <TablaDatos
         filas={data}
         columnas={[
@@ -99,7 +148,7 @@ export function GraficaReservasPorCiudad({ data }) {
 export function GraficaTopHoteles({ data }) {
   return (
     <>
-      <BarrasHorizontales filas={data} etiqueta="hotel" valor="promedio" formato={(v) => v.toFixed(2)} dominio={[0, 5]} color={PALETA[1]} />
+      <BarrasHorizontales filas={data} etiqueta="hotel" valor="promedio" formato={(v) => v.toFixed(2)} dominio={5} color={AMBAR} />
       <TablaDatos
         filas={data}
         columnas={[
@@ -115,22 +164,17 @@ export function GraficaTopHoteles({ data }) {
 
 export function GraficaTiposHabitacion({ data }) {
   const filas = data.map((fila) => ({ ...fila, nombre: ETIQUETAS_TIPO_HABITACION[fila.tipo] }));
+  const columnas = filas.map((fila, indice) => ({ etiqueta: fila.nombre, valor: fila.ventas, color: COLORES[indice % COLORES.length] }));
+
   return (
     <>
-      <Cifras cifras={filas.map((fila) => ({ valor: formatearPesos(fila.precioMedioNoche), etiqueta: `${fila.nombre}: precio medio por noche` }))} />
-      <ResponsiveContainer width="100%" height={220}>
-        <BarChart data={filas}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="nombre" tick={{ fill: COLOR_EJE, fontSize: 12 }} />
-          <YAxis tickFormatter={abreviarPesos} width={64} tick={{ fill: COLOR_EJE, fontSize: 12 }} />
-          <Tooltip formatter={(v) => formatearPesos(v)} cursor={{ fill: '#f1f5f9' }} />
-          <Bar dataKey="ventas" name="Ventas" radius={[4, 4, 0, 0]}>
-            {filas.map((fila, i) => (
-              <Cell key={fila.tipo} fill={PALETA[i % PALETA.length]} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <Cifras cifras={filas.map((fila) => ({ valor: formatearPesos(fila.precioMedioNoche), etiqueta: `${fila.nombre} · precio medio` }))} />
+      <BarrasVerticales
+        columnas={columnas}
+        formato={abreviarPesos}
+        alto={200}
+        descripcion={`Ingresos por tipo: ${columnas.map((c) => `${c.etiqueta} ${abreviarPesos(c.valor)}`).join(', ')}`}
+      />
       <TablaDatos
         filas={filas}
         columnas={[
@@ -148,14 +192,14 @@ export function GraficaTiposHabitacion({ data }) {
 export function GraficaCancelaciones({ data }) {
   return (
     <>
-      <BarrasHorizontales filas={data} etiqueta="hotel" valor="tasaCancelacion" formato={(v) => `${v} %`} color={PALETA[3]} dominio={[0, 'dataMax + 5']} />
+      <BarrasHorizontales filas={data} etiqueta="hotel" valor="tasaCancelacion" formato={formatearPorcentaje} color={COLORES[3]} />
       <TablaDatos
         filas={data}
         columnas={[
           { titulo: 'Hotel', render: (f) => f.hotel },
           { titulo: 'Reservas', clase: 'derecha', render: (f) => f.reservas },
           { titulo: 'Canceladas', clase: 'derecha', render: (f) => f.canceladas },
-          { titulo: 'Tasa', clase: 'derecha', render: (f) => `${f.tasaCancelacion} %` },
+          { titulo: 'Tasa', clase: 'derecha', render: (f) => formatearPorcentaje(f.tasaCancelacion) },
         ]}
       />
     </>
@@ -165,7 +209,7 @@ export function GraficaCancelaciones({ data }) {
 export function GraficaTopHuespedes({ data }) {
   return (
     <>
-      <BarrasHorizontales filas={data} etiqueta="huesped" valor="gasto" formato={formatearPesos} color={PALETA[2]} />
+      <BarrasHorizontales filas={data} etiqueta="huesped" valor="gasto" formato={formatearPesos} color={COLORES[2]} />
       <TablaDatos
         filas={data}
         columnas={[
@@ -181,18 +225,15 @@ export function GraficaTopHuespedes({ data }) {
 
 export function GraficaPagosPorMetodo({ data }) {
   const filas = data.map((fila) => ({ ...fila, nombre: ETIQUETAS_METODO_PAGO[fila.metodo] }));
+  const segmentos = filas.map((fila, indice) => ({ nombre: fila.nombre, porcentaje: fila.participacion, color: COLORES[indice % COLORES.length] }));
+
   return (
     <>
-      <ResponsiveContainer width="100%" height={240}>
-        <PieChart margin={{ top: 10, right: 90, bottom: 10, left: 90 }}>
-          <Pie data={filas} dataKey="monto" nameKey="nombre" innerRadius={55} outerRadius={90} paddingAngle={2} label={({ nombre, participacion }) => `${nombre} ${participacion} %`}>
-            {filas.map((fila, i) => (
-              <Cell key={fila.metodo} fill={PALETA[i % PALETA.length]} />
-            ))}
-          </Pie>
-          <Tooltip formatter={(v) => formatearPesos(v)} />
-        </PieChart>
-      </ResponsiveContainer>
+      <Dona
+        segmentos={segmentos}
+        centro={{ valor: sumar(data, 'pagos'), etiqueta: 'pagos' }}
+        descripcion={`Pagos por método: ${segmentos.map((s) => `${s.nombre} ${formatearPorcentaje(s.porcentaje)}`).join(', ')}`}
+      />
       <TablaDatos
         filas={filas}
         columnas={[
@@ -200,7 +241,7 @@ export function GraficaPagosPorMetodo({ data }) {
           { titulo: 'Pagos', clase: 'derecha', render: (f) => f.pagos },
           { titulo: 'Monto', clase: 'derecha', render: (f) => formatearPesos(f.monto) },
           { titulo: 'Promedio', clase: 'derecha', render: (f) => formatearPesos(f.promedio) },
-          { titulo: 'Participación', clase: 'derecha', render: (f) => `${f.participacion} %` },
+          { titulo: 'Participación', clase: 'derecha', render: (f) => formatearPorcentaje(f.participacion) },
         ]}
       />
     </>
@@ -213,12 +254,12 @@ export function GraficaOcupacion({ respuesta }) {
     <>
       <Cifras
         cifras={[
-          { valor: `${total.ocupacion} %`, etiqueta: `ocupación de la red en ${filtros.dias} días` },
+          { valor: formatearPorcentaje(total.ocupacion), etiqueta: `ocupación de la red en ${filtros.dias} días` },
           { valor: total.nochesVendidas, etiqueta: 'noches vendidas' },
           { valor: total.nochesDisponibles, etiqueta: 'noches disponibles' },
         ]}
       />
-      <BarrasHorizontales filas={data} etiqueta="hotel" valor="ocupacion" formato={(v) => `${v} %`} color={PALETA[5]} dominio={[0, 'dataMax + 5']} />
+      <BarrasHorizontales filas={data} etiqueta="hotel" valor="ocupacion" formato={formatearPorcentaje} color={COLORES[0]} />
       <TablaDatos
         filas={data}
         columnas={[
@@ -226,7 +267,7 @@ export function GraficaOcupacion({ respuesta }) {
           { titulo: 'Habitaciones', clase: 'derecha', render: (f) => f.habitaciones },
           { titulo: 'Noches disponibles', clase: 'derecha', render: (f) => f.nochesDisponibles },
           { titulo: 'Noches vendidas', clase: 'derecha', render: (f) => f.nochesVendidas },
-          { titulo: 'Ocupación', clase: 'derecha', render: (f) => `${f.ocupacion} %` },
+          { titulo: 'Ocupación', clase: 'derecha', render: (f) => formatearPorcentaje(f.ocupacion) },
         ]}
       />
     </>

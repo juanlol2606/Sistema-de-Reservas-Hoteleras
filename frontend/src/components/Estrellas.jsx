@@ -1,6 +1,6 @@
-export function Estrellas({ cantidad, maximo = 5 }) {
+export function Estrellas({ cantidad, maximo = 5, className = '' }) {
   return (
-    <span className="estrellas" role="img" aria-label={`${cantidad} de ${maximo} estrellas`}>
+    <span className={`estrellas ${className}`.trim()} role="img" aria-label={`${cantidad} de ${maximo} estrellas`}>
       {'★'.repeat(cantidad)}
       <span className="estrellas-vacias">{'★'.repeat(maximo - cantidad)}</span>
     </span>

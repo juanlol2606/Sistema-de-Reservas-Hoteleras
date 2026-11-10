@@ -3,6 +3,7 @@ import Hotel from '../models/Hotel.js';
 import { noEncontrado } from '../utils/errores.js';
 import { paginar } from '../utils/paginacion.js';
 import { coincidenciaParcial } from '../utils/texto.js';
+import { borrarImagenesRemotas } from './cloudinary.service.js';
 import { exigirSinReservas } from './integridad.service.js';
 
 export function listarHoteles({ ciudad, estrellas, q, activo, page, limit }) {
@@ -34,6 +35,8 @@ export async function actualizarHotel(id, datos) {
 export async function eliminarHotel(id) {
   const hotel = await obtenerHotel(id);
   await exigirSinReservas({ hotelId: hotel._id }, 'el hotel');
+  const habitaciones = await Habitacion.find({ hotelId: hotel._id }).select('imagenes');
   await Habitacion.deleteMany({ hotelId: hotel._id });
   await hotel.deleteOne();
+  await borrarImagenesRemotas([...hotel.imagenes, ...habitaciones.flatMap((habitacion) => habitacion.imagenes)]);
 }

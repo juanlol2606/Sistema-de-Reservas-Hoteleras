@@ -3,9 +3,11 @@ import Hotel from '../models/Hotel.js';
 import { noEncontrado } from '../utils/errores.js';
 import { paginar } from '../utils/paginacion.js';
 import { coincidenciaParcial } from '../utils/texto.js';
+import { borrarImagenesRemotas } from './cloudinary.service.js';
 import { exigirSinReservas } from './integridad.service.js';
 
-export const POBLAR_HOTEL = { path: 'hotel', select: 'nombre direccion.ciudad' };
+// Del hotel solo viaja su portada (la primera foto): alcanza para las miniaturas.
+export const POBLAR_HOTEL = { path: 'hotel', select: { nombre: 1, 'direccion.ciudad': 1, imagenes: { $slice: 1 } } };
 
 export function listarHabitaciones({ hotelId, tipo, estado, activo, q, page, limit }) {
   const filtro = {};
@@ -48,4 +50,5 @@ export async function eliminarHabitacion(id) {
   const habitacion = await obtenerHabitacion(id);
   await exigirSinReservas({ habitacionId: habitacion._id }, 'la habitación');
   await habitacion.deleteOne();
+  await borrarImagenesRemotas(habitacion.imagenes);
 }

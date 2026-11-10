@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import Boton from './Boton.jsx';
 
 const ENLACES = [
   { ruta: '/hoteles', texto: 'Hoteles' },
@@ -17,7 +18,7 @@ export default function Layout() {
       <header className="cabecera">
         <div className="cabecera-interior">
           <NavLink to="/" className="marca">
-            StayHub
+            <span>Stay</span>Hub
           </NavLink>
           <nav className="navegacion" aria-label="Principal">
             {ENLACES.map(({ ruta, texto }) => (
@@ -28,15 +29,13 @@ export default function Layout() {
           </nav>
           <div className="usuario">
             <span>{usuario.email}</span>
-            <button type="button" className="boton boton-pequeno" onClick={() => cerrarSesion()}>
+            <Boton variante="sobre-oscuro" onClick={() => cerrarSesion()}>
               Cerrar sesión
-            </button>
+            </Boton>
           </div>
         </div>
       </header>
-      <main className="contenedor">
-        <Outlet />
-      </main>
+      <Outlet />
     </>
   );
 }

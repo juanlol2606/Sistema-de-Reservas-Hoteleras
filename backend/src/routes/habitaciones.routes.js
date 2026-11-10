@@ -10,9 +10,11 @@ import {
   modificarHabitacionSchema,
   reemplazarHabitacionSchema,
 } from '../schemas/habitacion.schema.js';
+import { crearRutasImagenes } from './imagenes.routes.js';
 
 const router = Router();
 
+router.use('/:id/imagenes', crearRutasImagenes('habitaciones'));
 router.get('/',validar({ query: filtrosHabitacionSchema }), controlador.listar);
 router.get('/disponibles', validar({ query: filtrosDisponiblesSchema }), controlador.disponibles);
 router.get('/:id', validar({ params: parametrosId }), controlador.obtener);

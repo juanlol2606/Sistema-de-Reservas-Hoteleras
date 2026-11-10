@@ -1,16 +1,20 @@
 import AccionesFila from '../components/AccionesFila.jsx';
 import AlertaError from '../components/AlertaError.jsx';
+import Avatar from '../components/Avatar.jsx';
+import Boton from '../components/Boton.jsx';
 import Campo from '../components/Campo.jsx';
 import ConfirmarAccion from '../components/ConfirmarAccion.jsx';
-import EncabezadoPagina from '../components/EncabezadoPagina.jsx';
 import FormularioHuesped from '../components/FormularioHuesped.jsx';
+import { IconoMas } from '../components/Iconos.jsx';
 import { InsigniaActivo } from '../components/Insignia.jsx';
 import Modal from '../components/Modal.jsx';
+import Pagina from '../components/Pagina.jsx';
 import Paginacion from '../components/Paginacion.jsx';
 import Tabla from '../components/Tabla.jsx';
 import { huespedes } from '../api/recursos.js';
 import { useGestion } from '../hooks/useGestion.js';
 import { useListado } from '../hooks/useListado.js';
+import { useResumenDeHuespedes } from '../hooks/useResumen.js';
 import { OPCIONES_ACTIVO } from '../utils/catalogos.js';
 
 const FILTROS_INICIALES = { q: '', ciudad: '', activo: '' };
@@ -18,19 +22,39 @@ const MENSAJES = { guardado: 'Huésped guardado', eliminado: 'Huésped eliminado
 
 export default function Huespedes() {
   const listado = useListado(huespedes.listar, FILTROS_INICIALES);
-  const gestion = useGestion({ api: huespedes, mensajes: MENSAJES, recargar: listado.recargar });
+  const { resumen, recargar: recargarResumen } = useResumenDeHuespedes();
+  const gestion = useGestion({
+    api: huespedes,
+    mensajes: MENSAJES,
+    recargar: () => {
+      listado.recargar();
+      recargarResumen();
+    },
+  });
 
   const columnas = [
     {
       titulo: 'Huésped',
       render: (huesped) => (
+        <div className="persona">
+          <Avatar nombre={huesped.nombre} grande />
+          <div>
+            <strong>{huesped.nombre}</strong>
+            <span className="secundario">{huesped.email}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      titulo: 'Documento',
+      clase: 'sin-corte',
+      render: (huesped) => (
         <>
-          <strong>{huesped.nombre}</strong>
-          <span className="secundario">{huesped.email}</span>
+          <span className="etiqueta-documento">{huesped.documento.tipo}</span>
+          <span className="numero">{huesped.documento.numero}</span>
         </>
       ),
     },
-    { titulo: 'Documento', clase: 'sin-corte', render: (huesped) => `${huesped.documento.tipo} ${huesped.documento.numero}` },
     {
       titulo: 'Origen y contacto',
       render: (huesped) => (
@@ -56,25 +80,46 @@ export default function Huespedes() {
   ];
 
   return (
-    <>
-      <EncabezadoPagina titulo="Huéspedes" descripcion="Personas que reservan en la red de hoteles.">
-        <button type="button" className="boton boton-primario" onClick={gestion.abrirNuevo}>
+    <Pagina
+      etiqueta="Huéspedes"
+      titulo="Huéspedes"
+      descripcion="Personas que reservan en la red de hoteles."
+      cifras={[
+        { valor: resumen?.total, etiqueta: 'Huéspedes' },
+        { valor: resumen?.activos, etiqueta: 'Activos' },
+      ]}
+      acciones={
+        <Boton variante="dorado" onClick={gestion.abrirNuevo}>
+          <IconoMas />
           Nuevo huésped
-        </button>
-      </EncabezadoPagina>
-
+        </Boton>
+      }
+    >
       <div className="filtros">
         <Campo etiqueta="Buscar" tipo="search" placeholder="Nombre, correo o documento" {...listado.filtro('q')} />
         <Campo etiqueta="Ciudad de origen" placeholder="Ej. Bogotá" {...listado.filtro('ciudad')} />
         <Campo etiqueta="Estado" opciones={OPCIONES_ACTIVO} textoVacio="Todos" {...listado.filtro('activo')} />
       </div>
 
+      <div className="titulo-listado">
+        <h2>Directorio</h2>
+        <span>
+          {listado.total} {listado.total === 1 ? 'resultado' : 'resultados'}
+        </span>
+      </div>
+
       <AlertaError error={gestion.errorAccion} />
       <Tabla columnas={columnas} filas={listado.filas} cargando={listado.cargando} error={listado.error} />
-      <Paginacion pagina={listado.pagina} total={listado.total} alCambiar={listado.cambiarPagina} />
+      <Paginacion pagina={listado.pagina} total={listado.total} alCambiar={listado.cambiarPagina} mostrarTotal={false} />
 
       {gestion.edicion && (
-        <Modal titulo={gestion.edicion === 'nuevo' ? 'Nuevo huésped' : 'Editar huésped'} alCerrar={gestion.cerrarEdicion}>
+        <Modal
+          etiqueta="Huéspedes"
+          titulo={gestion.edicion === 'nuevo' ? 'Nuevo huésped' : 'Editar huésped'}
+          descripcion="Datos de la persona que reserva."
+          ancho="medio"
+          alCerrar={gestion.cerrarEdicion}
+        >
           <FormularioHuesped
             huesped={gestion.edicion === 'nuevo' ? null : gestion.edicion}
             alGuardar={gestion.guardar}
@@ -94,6 +139,6 @@ export default function Huespedes() {
           alternativa={{ texto: 'Desactivar en su lugar', ejecutar: gestion.desactivarEnLugarDeEliminar }}
         />
       )}
-    </>
+    </Pagina>
   );
 }

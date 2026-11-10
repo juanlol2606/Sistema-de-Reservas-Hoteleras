@@ -1,7 +1,12 @@
 import { ETIQUETAS_ESTADO_RESERVA, TONOS_ESTADO_RESERVA } from '../utils/catalogos.js';
 
 export default function Insignia({ tono = 'neutro', children }) {
-  return <span className={`insignia insignia-${tono}`}>{children}</span>;
+  return (
+    <span className={`insignia insignia-${tono}`}>
+      <span className="insignia-punto" aria-hidden="true" />
+      {children}
+    </span>
+  );
 }
 
 export const InsigniaEstadoReserva = ({ estado }) => (

@@ -12,7 +12,7 @@ export default function FormularioResena({ alPublicar }) {
   });
 
   return (
-    <Formulario formulario={formulario} textoEnviar="Publicar reseña">
+    <Formulario formulario={formulario} textoEnviar="Publicar reseña" variante="oscuro">
       <div className="campo campo-completo">
         <label>Puntuación</label>
         <SelectorEstrellas valor={formulario.valores.puntuacion} alCambiar={(n) => formulario.cambiar('puntuacion', n)} />

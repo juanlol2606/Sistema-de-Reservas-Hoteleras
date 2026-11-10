@@ -5,10 +5,12 @@ import { useFormulario } from '../hooks/useFormulario.js';
 import { useOpcionesDeHoteles, useOpcionesDeHuespedes } from '../hooks/useOpciones.js';
 import { ETIQUETAS_TIPO_HABITACION } from '../utils/catalogos.js';
 import { aValorDeFecha, diasEntre, formatearPesos, hoyEnBogota } from '../utils/formato.js';
+import { urlDeFoto } from '../utils/imagenes.js';
 import { conErrores, entero, requerido } from '../utils/validaciones.js';
 import AlertaError from './AlertaError.jsx';
 import Campo from './Campo.jsx';
 import Formulario from './Formulario.jsx';
+import MarcoFoto from './MarcoFoto.jsx';
 
 const VALORES_NUEVOS = { huespedId: '', hotelId: '', habitacionId: '', fechaEntrada: '', fechaSalida: '', numHuespedes: '1' };
 
@@ -29,6 +31,7 @@ const habitacionActual = (r) => ({
   tipo: r.habitacion.tipo,
   precioNoche: r.habitacion.precioNoche,
   hotel: r.hotel,
+  imagenes: r.imagenesHabitacion,
   actual: true,
 });
 
@@ -91,6 +94,7 @@ export default function FormularioReserva({ reserva, alGuardar, alCancelar }) {
     reserva && !opcionesDeHuespedes.some((o) => o.valor === reserva.huespedId)
       ? [{ valor: reserva.huespedId, etiqueta: reserva.huesped.nombre }, ...opcionesDeHuespedes]
       : opcionesDeHuespedes;
+  const hayOpciones = opcionesDeHabitaciones.length > 0;
 
   return (
     <Formulario formulario={formulario} textoEnviar={reserva ? 'Guardar cambios' : 'Crear reserva'} alCancelar={alCancelar}>
@@ -99,37 +103,60 @@ export default function FormularioReserva({ reserva, alGuardar, alCancelar }) {
       <Campo etiqueta="Filtrar por hotel" opciones={opcionesDeHoteles} textoVacio="Todos los hoteles" {...formulario.campo('hotelId')} />
       <Campo etiqueta="Número de huéspedes" tipo="number" min="1" {...formulario.campo('numHuespedes')} />
 
-      <div className="campo campo-completo">
-        <label>Habitación disponible</label>
+      <fieldset className="seccion seleccion-habitacion">
+        <legend>
+          Habitación disponible
+          {rangoValido && !buscando && hayOpciones && ` · ${opcionesDeHabitaciones.length} ${opcionesDeHabitaciones.length === 1 ? 'libre' : 'libres'}`}
+        </legend>
         {!rangoValido && <p className="campo-ayuda">Elige las fechas para ver las habitaciones libres.</p>}
         {buscando && <p className="campo-ayuda">Buscando habitaciones…</p>}
         <AlertaError error={errorBusqueda} />
-        {rangoValido && !buscando && !errorBusqueda && opcionesDeHabitaciones.length === 0 && (
-          <p className="campo-error">No hay habitaciones libres en esas fechas.</p>
-        )}
-        <div className="lista-habitaciones">
+        {rangoValido && !buscando && !errorBusqueda && !hayOpciones && <p className="campo-error">No hay habitaciones libres en esas fechas.</p>}
+        <div className="opciones-habitacion">
           {opcionesDeHabitaciones.map((h) => (
-            <label key={h._id} className="opcion-habitacion">
-              <input type="radio" name="habitacionId" checked={habitacionId === h._id} onChange={() => formulario.cambiar('habitacionId', h._id)} />
-              <span>
-                <strong>
-                  {h.hotel?.nombre} · Hab. {h.numero}
-                </strong>{' '}
-                · {ETIQUETAS_TIPO_HABITACION[h.tipo]}
-                {h.capacidad ? ` · hasta ${h.capacidad}` : ''} · {formatearPesos(h.precioNoche)} por noche
-                {h.actual ? ' (actual)' : ''}
+            <label key={h._id} className={`opcion-habitacion${habitacionId === h._id ? ' opcion-elegida' : ''}`}>
+              <MarcoFoto
+                relacion="16 / 10"
+                icono="cama"
+                etiqueta="Foto"
+                imagen={h.imagenes?.[0] && urlDeFoto(h.imagenes[0].url, 'opcionHabitacion')}
+                alt={`Habitación ${h.numero}`}
+              />
+              <span className="opcion-cuerpo">
+                <span className="opcion-fila">
+                  <span className="opcion-titulo">
+                    {h.numero} · {ETIQUETAS_TIPO_HABITACION[h.tipo]}
+                  </span>
+                  <input type="radio" name="habitacionId" checked={habitacionId === h._id} onChange={() => formulario.cambiar('habitacionId', h._id)} />
+                </span>
+                <span className="opcion-detalle">
+                  {h.hotel?.nombre}
+                  {h.actual ? ' (actual)' : ''}
+                </span>
+                <span className="opcion-detalle">
+                  {h.capacidad ? `${h.capacidad} ${h.capacidad === 1 ? 'persona' : 'personas'} · ` : ''}
+                  {formatearPesos(h.precioNoche)} / noche
+                </span>
+                {noches > 0 && (
+                  <span className="opcion-total">
+                    {formatearPesos(noches * h.precioNoche)} por {noches} {noches === 1 ? 'noche' : 'noches'}
+                  </span>
+                )}
               </span>
             </label>
           ))}
         </div>
         {formulario.errores.habitacionId && <small className="campo-error">{formulario.errores.habitacionId}</small>}
-      </div>
+      </fieldset>
 
       <Campo etiqueta="Huésped" ancho="completo" opciones={huespedesDisponibles} {...formulario.campo('huespedId')} />
 
       {elegida && noches > 0 && (
         <div className="campo-completo resumen-reserva">
-          {noches} {noches === 1 ? 'noche' : 'noches'} × {formatearPesos(elegida.precioNoche)} = {formatearPesos(noches * elegida.precioNoche)}
+          <span>
+            {noches} {noches === 1 ? 'noche' : 'noches'} · Hab. {elegida.numero} · {elegida.hotel?.nombre}
+          </span>
+          <strong>{formatearPesos(noches * elegida.precioNoche)}</strong>
         </div>
       )}
     </Formulario>

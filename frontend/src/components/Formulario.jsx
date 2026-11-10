@@ -1,19 +1,20 @@
 import AlertaError from './AlertaError.jsx';
+import Boton from './Boton.jsx';
 
-export default function Formulario({ formulario, textoEnviar = 'Guardar', alCancelar, children }) {
+export default function Formulario({ formulario, textoEnviar = 'Guardar', alCancelar, variante = 'dorado', children }) {
   return (
     <form className="formulario" onSubmit={formulario.enviar} noValidate>
       <AlertaError error={formulario.errorGeneral} />
       <div className="rejilla-formulario">{children}</div>
       <div className="acciones">
         {alCancelar && (
-          <button type="button" className="boton" onClick={alCancelar} disabled={formulario.enviando}>
+          <Boton onClick={alCancelar} disabled={formulario.enviando}>
             Cancelar
-          </button>
+          </Boton>
         )}
-        <button type="submit" className="boton boton-primario" disabled={formulario.enviando}>
+        <Boton type="submit" variante={variante} disabled={formulario.enviando}>
           {formulario.enviando ? 'Guardando…' : textoEnviar}
-        </button>
+        </Boton>
       </div>
     </form>
   );

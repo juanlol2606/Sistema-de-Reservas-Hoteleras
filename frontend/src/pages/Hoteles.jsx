@@ -1,17 +1,18 @@
-import AccionesFila from '../components/AccionesFila.jsx';
 import AlertaError from '../components/AlertaError.jsx';
+import Boton from '../components/Boton.jsx';
 import Campo from '../components/Campo.jsx';
 import ConfirmarAccion from '../components/ConfirmarAccion.jsx';
-import EncabezadoPagina from '../components/EncabezadoPagina.jsx';
-import { Estrellas } from '../components/Estrellas.jsx';
+import EstadoListado from '../components/EstadoListado.jsx';
 import FormularioHotel from '../components/FormularioHotel.jsx';
-import { InsigniaActivo } from '../components/Insignia.jsx';
+import { IconoMas } from '../components/Iconos.jsx';
 import Modal from '../components/Modal.jsx';
+import Pagina from '../components/Pagina.jsx';
 import Paginacion from '../components/Paginacion.jsx';
-import Tabla from '../components/Tabla.jsx';
+import TarjetaHotel from '../components/TarjetaHotel.jsx';
 import { hoteles } from '../api/recursos.js';
 import { useGestion } from '../hooks/useGestion.js';
 import { useListado } from '../hooks/useListado.js';
+import { useResumenDeHoteles } from '../hooks/useResumen.js';
 import { OPCIONES_ACTIVO, OPCIONES_ESTRELLAS } from '../utils/catalogos.js';
 
 const FILTROS_INICIALES = { q: '', ciudad: '', estrellas: '', activo: '' };
@@ -19,47 +20,36 @@ const MENSAJES = { guardado: 'Hotel guardado', eliminado: 'Hotel eliminado', act
 
 export default function Hoteles() {
   const listado = useListado(hoteles.listar, FILTROS_INICIALES);
-  const gestion = useGestion({ api: hoteles, mensajes: MENSAJES, recargar: listado.recargar });
+  const { resumen, recargar: recargarResumen } = useResumenDeHoteles();
+  const gestion = useGestion({
+    api: hoteles,
+    mensajes: MENSAJES,
+    recargar: () => {
+      listado.recargar();
+      recargarResumen();
+    },
+  });
 
-  const columnas = [
-    {
-      titulo: 'Hotel',
-      render: (hotel) => (
-        <>
-          <strong>{hotel.nombre}</strong>
-          <span className="secundario">{hotel.direccion.calle}</span>
-        </>
-      ),
-    },
-    { titulo: 'Ciudad', render: (hotel) => hotel.direccion.ciudad },
-    { titulo: 'Categoría', render: (hotel) => <Estrellas cantidad={hotel.estrellas} /> },
-    {
-      titulo: 'Calificación',
-      render: (hotel) => (hotel.calificacionPromedio ? `${hotel.calificacionPromedio.toFixed(2)} / 5` : 'Sin reseñas'),
-    },
-    { titulo: 'Estado', render: (hotel) => <InsigniaActivo activo={hotel.activo} /> },
-    {
-      titulo: 'Acciones',
-      clase: 'acciones-fila',
-      render: (hotel) => (
-        <AccionesFila
-          activo={hotel.activo}
-          alEditar={() => gestion.abrirEdicion(hotel)}
-          alAlternarActivo={() => gestion.alternarActivo(hotel)}
-          alEliminar={() => gestion.pedirEliminar(hotel)}
-        />
-      ),
-    },
+  const cifras = [
+    { valor: resumen?.total, etiqueta: 'Hoteles' },
+    { valor: resumen?.activos, etiqueta: 'Activos' },
+    { valor: resumen?.habitaciones, etiqueta: 'Habitaciones' },
+    { valor: resumen?.promedio?.toFixed(2), etiqueta: 'Calif. promedio', resaltada: true },
   ];
 
   return (
-    <>
-      <EncabezadoPagina titulo="Hoteles" descripcion="Los hoteles de la red y su calificación promedio.">
-        <button type="button" className="boton boton-primario" onClick={gestion.abrirNuevo}>
+    <Pagina
+      etiqueta="Red de hoteles"
+      titulo="Nuestros hoteles"
+      descripcion="Los hoteles de la red y su calificación promedio."
+      cifras={cifras}
+      acciones={
+        <Boton variante="dorado" onClick={gestion.abrirNuevo}>
+          <IconoMas />
           Nuevo hotel
-        </button>
-      </EncabezadoPagina>
-
+        </Boton>
+      }
+    >
       <div className="filtros">
         <Campo etiqueta="Buscar por nombre" tipo="search" placeholder="Ej. Casa Bahía" {...listado.filtro('q')} />
         <Campo etiqueta="Ciudad" placeholder="Ej. Medellín" {...listado.filtro('ciudad')} />
@@ -67,12 +57,44 @@ export default function Hoteles() {
         <Campo etiqueta="Estado" opciones={OPCIONES_ACTIVO} textoVacio="Todos" {...listado.filtro('activo')} />
       </div>
 
+      <div className="titulo-listado">
+        <h2>Todos los hoteles</h2>
+        <span>
+          {listado.total} {listado.total === 1 ? 'resultado' : 'resultados'}
+        </span>
+      </div>
+
       <AlertaError error={gestion.errorAccion} />
-      <Tabla columnas={columnas} filas={listado.filas} cargando={listado.cargando} error={listado.error} />
-      <Paginacion pagina={listado.pagina} total={listado.total} alCambiar={listado.cambiarPagina} />
+      <EstadoListado cargando={listado.cargando} error={listado.error} vacio={listado.filas.length === 0} />
+      <div className={`rejilla-hoteles${listado.cargando ? ' listado-cargando' : ''}`}>
+        {listado.filas.map((hotel) => (
+          <TarjetaHotel
+            key={hotel._id}
+            hotel={hotel}
+            alEditar={() => gestion.abrirEdicion(hotel)}
+            alAlternarActivo={() => gestion.alternarActivo(hotel)}
+            alEliminar={() => gestion.pedirEliminar(hotel)}
+          />
+        ))}
+        {!listado.error && (
+          <button type="button" className="tarjeta-agregar" onClick={gestion.abrirNuevo}>
+            <span className="tarjeta-agregar-icono">
+              <IconoMas />
+            </span>
+            <span className="tarjeta-agregar-titulo">Agregar hotel</span>
+            <span>Datos y fotos</span>
+          </button>
+        )}
+      </div>
+      <Paginacion pagina={listado.pagina} total={listado.total} alCambiar={listado.cambiarPagina} mostrarTotal={false} />
 
       {gestion.edicion && (
-        <Modal titulo={gestion.edicion === 'nuevo' ? 'Nuevo hotel' : 'Editar hotel'} alCerrar={gestion.cerrarEdicion}>
+        <Modal
+          etiqueta="Hoteles"
+          titulo={gestion.edicion === 'nuevo' ? 'Nuevo hotel' : 'Editar hotel'}
+          descripcion="Completa los datos y agrega fotos para mostrarlo en la red."
+          alCerrar={gestion.cerrarEdicion}
+        >
           <FormularioHotel
             hotel={gestion.edicion === 'nuevo' ? null : gestion.edicion}
             alGuardar={gestion.guardar}
@@ -84,7 +106,7 @@ export default function Hoteles() {
       {gestion.aEliminar && (
         <ConfirmarAccion
           titulo="Eliminar hotel"
-          mensaje={`¿Eliminar «${gestion.aEliminar.nombre}» junto con todas sus habitaciones? Esta acción no se puede deshacer.`}
+          mensaje={`¿Eliminar «${gestion.aEliminar.nombre}» junto con todas sus habitaciones y sus fotos? Esta acción no se puede deshacer.`}
           textoConfirmar="Eliminar"
           peligro
           alConfirmar={gestion.eliminar}
@@ -92,6 +114,6 @@ export default function Hoteles() {
           alternativa={{ texto: 'Desactivar en su lugar', ejecutar: gestion.desactivarEnLugarDeEliminar }}
         />
       )}
-    </>
+    </Pagina>
   );
 }

@@ -2,7 +2,7 @@
 
 Aplicación web de reservas para una red de hoteles pequeños. Proyecto final de Bases de Datos II.
 
-- **Backend** (`backend/`): API REST con Node.js, Express y Mongoose sobre MongoDB Atlas. Se despliega en Render.
+- **Backend** (`backend/`): API REST con Node.js, Express y Mongoose sobre MongoDB Atlas. Se despliega en Render. Las fotos de hoteles y habitaciones se guardan en Cloudinary; en Mongo solo queda un arreglo de URLs.
 - **Frontend** (`frontend/`): interfaz con React, Vite, React Router y Axios. Se despliega en Vercel.
 - **Evidencias** (`docs/evidencias/`): carpeta para las capturas del proyecto.
 
@@ -36,8 +36,9 @@ stayhub/
 ├── package.json                 Scripts del workspace y versión de pnpm (packageManager)
 ├── pnpm-workspace.yaml          Declara backend y frontend como proyectos del workspace
 ├── pnpm-lock.yaml               Lockfile único de todo el monorepo
+├── design/stayhub-html/         Diseño de referencia (HTML estáticos); no forma parte de la app
 ├── docs/
-│   ├── despliegue.md            Guía paso a paso: Atlas, Render y Vercel
+│   ├── despliegue.md            Guía paso a paso: Atlas, Render, Vercel y Cloudinary
 │   └── evidencias/              Capturas del proyecto
 ├── backend/
 │   ├── requests.http            Peticiones de prueba (extensión REST Client de VS Code)
@@ -56,14 +57,15 @@ stayhub/
 └── frontend/
     ├── vercel.json              Reescritura para las rutas de React Router
     ├── .env.example
+    ├── public/login.jpg         Foto fija del lado izquierdo del login (si falta, se ve un placeholder)
     └── src/
         ├── api/                 Cliente HTTP y recursos de la API
         ├── context/             Sesión y avisos
-        ├── hooks/               Listados, formularios y opciones
-        ├── components/          Tabla, modal, campos, formularios y gráficas
+        ├── hooks/               Listados, formularios, opciones, cifras de cabecera y fotos
+        ├── components/          Botón, campos, chips, tarjetas, tabla, modal, fotos, formularios y gráficas
         ├── pages/               Login, Hoteles, Habitaciones, Huéspedes, Reservas y Reportes
-        ├── utils/               Formato, catálogos y validaciones
-        └── styles/
+        ├── utils/               Formato, catálogos, validaciones y URLs de fotos
+        └── styles/              theme.css (colores, fuentes, radios, sombras), componentes.css y paginas.css
 ```
 
 El backend sigue las capas **routes → controllers → services → models**. Las reglas de negocio viven solo en `services/`.
@@ -73,6 +75,7 @@ El backend sigue las capas **routes → controllers → services → models**. L
 - **Node.js 20.19 o superior, hasta la serie 24** (también sirve 22.12 o superior; se recomienda una LTS reciente). Mongoose 9 y Vite 8 no funcionan con versiones anteriores a 20.19, y el proyecto declara `<25` para que Render no elija una versión más nueva que las probadas.
 - **pnpm 12**. El proyecto es un workspace de pnpm y fija la versión exacta en el campo `packageManager` de `package.json`: si ya tienes pnpm, descarga y usa esa versión por sí mismo. Si no lo tienes, instálalo con Corepack (`corepack enable`, viene con Node) o con el instalador oficial: <https://pnpm.io/installation>.
 - Una base de datos MongoDB. La guía usa MongoDB Atlas (gratis); para desarrollo también sirve cualquier cadena de conexión de MongoDB.
+- Para subir fotos, una cuenta gratuita de Cloudinary. Es opcional: sin ella todo lo demás funciona. Cómo crearla y dónde copiar las credenciales: [docs/despliegue.md](docs/despliegue.md#8-cloudinary-fotos-de-hoteles-y-habitaciones).
 
 ## Ejecución local
 
@@ -144,6 +147,7 @@ Los secretos viven solo en archivos `.env` (que están en `.gitignore`) o en los
 | `MONGODB_URI` | Sí | Cadena de conexión de Atlas, con el nombre de la base (`/stayhub`). |
 | `JWT_SECRET` | Sí | Clave para firmar los tokens. Larga y aleatoria. Si la cambias, las sesiones abiertas dejan de valer. |
 | `CORS_ORIGIN` | Sí | Origen(es) del frontend que pueden llamar a la API, sin barra final. Varios, separados por comas. |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Solo para fotos | Credenciales de tu cuenta de Cloudinary. Sin ellas la API arranca igual y todo lo demás funciona, pero subir fotos responde 503. |
 | `PORT` | No | Puerto de la API. Por defecto 4000. Render lo define solo. |
 | `ADMIN_EMAIL` | No | Solo para `pnpm seed`: correo del administrador. |
 | `ADMIN_PASSWORD` | No | Solo para `pnpm seed`: contraseña del administrador. |
@@ -294,6 +298,7 @@ Crea un repositorio vacío en GitHub y sigue sus instrucciones para `git remote 
    - `MONGODB_URI`: la cadena de Atlas.
    - `JWT_SECRET`: una cadena larga y aleatoria (genérala con el comando del paso 2 de la ejecución local).
    - `CORS_ORIGIN`: por ahora `http://localhost:5173`; la corregirás en el paso 6.
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET`: para las fotos (ver la guía de despliegue, sección 8).
    - No definas `PORT`: Render usa 10000 y la API lo lee.
 4. **Settings → Health Checks → Health Check Path:** `/api/health`.
 5. Despliega. Cuando termine, abre `https://<tu-servicio>.onrender.com/api/health`: debe mostrar `"estado":"ok"`.
@@ -362,6 +367,8 @@ Si usas varios dominios (por ejemplo, uno de vista previa), sepáralos con comas
 | `EADDRINUSE` al arrancar en local | El puerto 4000 o 5173 ya está ocupado. Cierra el otro proceso o cambia `PORT`. |
 | `pnpm install` falla o avisa por versiones | Revisa que tu Node sea 20.19 o superior (`node --version`). |
 | `pnpm: command not found` (o no se reconoce el comando) | Falta instalar pnpm: `corepack enable` o el instalador de <https://pnpm.io/installation>. |
+| Al subir fotos: "El servicio de imágenes no está configurado" (503) | Faltan `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` o `CLOUDINARY_API_SECRET` en `backend/.env` o en Render. Reinicia la API después de agregarlas. |
+| Al subir fotos: "No se pudo subir la imagen" (502) | Cloudinary rechazó las credenciales. Revisa que las tres coincidan con **Settings → API Keys** de tu cuenta; el motivo exacto queda en el log de la API. |
 
 ## Seguridad
 

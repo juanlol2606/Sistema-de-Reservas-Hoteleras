@@ -1,0 +1,1214 @@
+/* ---------- Cabecera de navegación ---------- */
+
+.cabecera {
+  border-bottom: 1px solid var(--oscuro-suave);
+  background: var(--oscuro);
+}
+
+.cabecera-interior {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: var(--ancho-maximo);
+  min-height: 72px;
+  margin: 0 auto;
+  padding: 0 var(--margen-pagina);
+}
+
+.marca {
+  font-family: var(--fuente-titulos);
+  font-size: 30px;
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+}
+
+.marca:hover {
+  color: #fff;
+}
+
+.marca span {
+  color: var(--dorado);
+}
+
+.marca-grande {
+  font-size: 44px;
+  color: var(--oscuro);
+}
+
+.navegacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 28px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.navegacion a {
+  padding: 26px 0 24px;
+  color: #d9d2c5;
+}
+
+.navegacion a:hover {
+  color: #fff;
+}
+
+.navegacion a.activo {
+  padding-bottom: 22px;
+  border-bottom: 2px solid var(--dorado);
+  color: var(--dorado);
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--texto-sobre-oscuro);
+}
+
+/* ---------- Cabecera de cada pantalla ---------- */
+
+.hero {
+  padding: 56px 0 104px;
+  background: var(--oscuro);
+  color: #fff;
+}
+
+.hero-compacto {
+  padding: 36px 0 96px;
+}
+
+.hero-interior {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: 0 var(--margen-pagina);
+}
+
+.hero-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.hero-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 600px;
+}
+
+.hero-titulo {
+  font-size: clamp(40px, 7vw, 64px);
+  line-height: 1;
+}
+
+.hero-compacto .hero-titulo {
+  font-size: clamp(34px, 6vw, 56px);
+}
+
+.hero-descripcion {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--texto-sobre-oscuro);
+}
+
+.hero-lado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 24px 40px;
+}
+
+.cifra-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cifra-hero-valor {
+  font-family: var(--fuente-titulos);
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.cifra-hero-resaltada {
+  color: var(--dorado);
+}
+
+.cifra-hero-etiqueta {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-sobre-oscuro);
+}
+
+.volver {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dorado);
+}
+
+.volver:hover {
+  color: var(--dorado-claro);
+}
+
+.principal {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: var(--ancho-maximo);
+  margin: -64px auto 0;
+  padding: 0 var(--margen-pagina) 72px;
+}
+
+.principal-compacto {
+  margin-top: -56px;
+}
+
+/* ---------- Hoteles ---------- */
+
+.rejilla-hoteles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr));
+  gap: 28px;
+}
+
+.tarjeta-hotel,
+.tarjeta-habitacion {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tarjeta-hotel {
+  border-radius: var(--radio-tarjeta-grande);
+}
+
+.tarjeta-cuerpo {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 14px;
+  padding: 22px 24px 18px;
+}
+
+.tarjeta-hotel-fila {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tarjeta-hotel-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tarjeta-hotel-datos h3 {
+  font-size: 28px;
+}
+
+.calificacion {
+  flex-shrink: 0;
+  font-size: 12px;
+  text-align: right;
+  color: var(--texto-suave);
+}
+
+.calificacion strong {
+  display: block;
+  font-family: var(--fuente-titulos);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--texto);
+}
+
+.tarjeta-pie {
+  padding: 4px 10px;
+  border-top: 1px solid var(--borde-suave);
+}
+
+.tarjeta-agregar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 320px;
+  border: 2px dashed var(--borde-punteado);
+  border-radius: var(--radio-tarjeta-grande);
+  background: none;
+  color: var(--dorado-tinta);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tarjeta-agregar:hover {
+  border-color: var(--dorado-foco);
+}
+
+.tarjeta-agregar-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radio-pildora);
+  background: var(--dorado-fondo);
+}
+
+.tarjeta-agregar-titulo {
+  font-family: var(--fuente-titulos);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.tarjeta-agregar > span:last-child {
+  color: var(--texto-suave);
+}
+
+/* ---------- Habitaciones ---------- */
+
+.grupos-hotel {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.grupo-hotel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.grupo-hotel-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2d8c8;
+}
+
+.grupo-hotel-titulo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.grupo-hotel-titulo h2 {
+  font-size: 34px;
+}
+
+.rejilla-habitaciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+  gap: 24px;
+}
+
+.tarjeta-habitacion .tarjeta-cuerpo {
+  gap: 10px;
+  padding: 18px 20px 14px;
+}
+
+.tarjeta-habitacion h3 {
+  font-size: 26px;
+}
+
+.dato-con-icono {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+
+.precio-noche {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.precio-noche strong {
+  font-family: var(--fuente-titulos);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--dorado-tinta);
+}
+
+.precio-noche span {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+/* ---------- Inicio de sesión ---------- */
+
+.pagina-login {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+  background: var(--oscuro);
+}
+
+.login-lado-foto {
+  position: relative;
+  display: flex;
+  flex: 1 1 520px;
+  min-height: 420px;
+  background-color: var(--oscuro-suave);
+  background-image: repeating-linear-gradient(135deg, rgb(201 163 101 / 6%) 0 16px, transparent 16px 32px);
+}
+
+.login-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.con-foto .login-foto {
+  opacity: 1;
+}
+
+.con-foto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(23 20 15 / 90%), rgb(23 20 15 / 15%) 65%);
+}
+
+.login-foto-vacia {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-tenue);
+}
+
+.login-lema {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+  margin-top: auto;
+  padding: 56px;
+}
+
+.linea-dorada {
+  width: 48px;
+  height: 2px;
+  background: var(--dorado);
+}
+
+.login-lema-titulo {
+  font-family: var(--fuente-titulos);
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.login-lema-texto {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--texto-sobre-oscuro);
+}
+
+.login-lado-formulario {
+  display: flex;
+  flex: 1 1 440px;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  background: var(--fondo);
+}
+
+.login-contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-encabezado h1 {
+  font-size: 36px;
+}
+
+.login-encabezado p {
+  font-size: 15px;
+  color: var(--texto-suave);
+}
+
+.formulario-login {
+  gap: 18px;
+}
+
+.formulario-login .campo input {
+  height: 50px;
+  background: #fff;
+}
+
+.formulario-login .boton {
+  min-height: 52px;
+  margin-top: 8px;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+.login-pie {
+  font-size: 12px;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+/* ---------- Detalle de reserva ---------- */
+
+.linea-estado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 760px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.linea-estado li {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  gap: 10px;
+}
+
+.linea-estado .paso-final {
+  flex-grow: 0;
+}
+
+.paso-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radio-pildora);
+  background: var(--oscuro-suave);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--texto-tenue);
+}
+
+.paso-texto {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--texto-tenue);
+}
+
+.paso-linea {
+  flex-grow: 1;
+  min-width: 24px;
+  height: 1px;
+  background: #3a332b;
+}
+
+.paso-hecho .paso-numero {
+  background: var(--dorado);
+  color: var(--oscuro);
+}
+
+.paso-hecho .paso-texto {
+  color: #fff;
+}
+
+.detalle-reserva {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.detalle-columna {
+  display: flex;
+  flex: 999 1 560px;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.detalle-lateral {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.tarjeta-con-foto {
+  display: flex;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.tarjeta-foto {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.tarjeta-datos {
+  display: flex;
+  flex: 2 1 340px;
+  flex-direction: column;
+  gap: 22px;
+  padding: 24px;
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0;
+}
+
+.datos > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.datos dt {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.datos dd {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.registrar-pago {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.registrar-pago h3 {
+  font-family: var(--fuente-texto);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.resena {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--fondo);
+}
+
+.cifras {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  font-size: 15px;
+}
+
+.cifras > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cifras dt {
+  color: var(--texto-suave);
+}
+
+.cifras dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.cifra-saldo {
+  align-items: baseline;
+  padding-top: 10px;
+  border-top: 1px solid var(--borde-suave);
+}
+
+.cifras .cifra-saldo dt {
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.cifras .cifra-saldo dd {
+  font-family: var(--fuente-titulos);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dorado-tinta);
+}
+
+.progreso {
+  position: relative;
+  height: 8px;
+  border-radius: var(--radio-pildora);
+  background: var(--progreso-fondo);
+}
+
+.progreso-relleno {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: var(--radio-pildora);
+  background: var(--dorado);
+}
+
+.progreso-marca {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 16px;
+  background: var(--dorado-tinta);
+}
+
+.acciones-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.acciones-columna .boton {
+  border-radius: 12px;
+}
+
+/* ---------- Reportes ---------- */
+
+.rejilla-reportes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr));
+  gap: 24px;
+}
+
+.tarjeta-reporte {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  padding: 24px;
+}
+
+.tarjeta-reporte-ancha {
+  grid-column: 1 / -1;
+}
+
+.tarjeta-reporte header p {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--texto-suave);
+}
+
+.cifras-destacadas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+}
+
+.cifra-destacada {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cifra-destacada strong {
+  font-family: var(--fuente-titulos);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--oscuro);
+}
+
+.cifra-destacada span {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.barras-h {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.barra-h {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.barra-h-etiqueta {
+  font-size: 13px;
+  text-align: right;
+  color: var(--texto-intermedio);
+}
+
+.barra-h-pista {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.barra-h-relleno {
+  display: block;
+  flex-shrink: 0;
+  min-width: 2px;
+  height: 26px;
+  border-radius: 0 6px 6px 0;
+}
+
+.barra-h-valor {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.barras-v {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: var(--alto, 280px);
+}
+
+.barras-v-guias {
+  position: absolute;
+  inset: 0 0 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.barras-v-guias span {
+  display: block;
+  border-top: 1px dashed var(--grafica-trazo);
+}
+
+.barras-v-columnas {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  height: 100%;
+}
+
+.barra-v {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.barra-v-zona {
+  position: relative;
+  flex: 1;
+}
+
+.barra-v-barra {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 70%;
+  max-width: 64px;
+  border-radius: 6px 6px 0 0;
+  transform: translateX(-50%);
+}
+
+.barra-v-valor {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  font-variant-numeric: tabular-nums;
+}
+
+.barra-v-etiqueta {
+  height: 30px;
+  padding-top: 6px;
+  line-height: 1.15;
+  font-size: 12px;
+  text-align: center;
+  color: var(--texto-suave);
+}
+
+.dona-contenedor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 32px;
+}
+
+.dona {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radio-pildora);
+}
+
+.dona-centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radio-pildora);
+  background: #fff;
+}
+
+.dona-centro strong {
+  font-family: var(--fuente-titulos);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.dona-centro span {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.leyenda {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  list-style: none;
+}
+
+.leyenda li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.leyenda-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.leyenda-nombre {
+  min-width: 110px;
+}
+
+.tarjeta-reporte details {
+  font-size: 13px;
+}
+
+.tarjeta-reporte summary {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  font-weight: 600;
+  color: var(--dorado-tinta);
+  cursor: pointer;
+}
+
+.tarjeta-reporte .tabla {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.tarjeta-reporte .tabla th,
+.tarjeta-reporte .tabla td {
+  padding: 8px 10px;
+}
+
+/* ---------- Pantallas angostas ---------- */
+
+@media (max-width: 860px) {
+  .tarjeta-foto .marco-foto {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --margen-pagina: 16px;
+  }
+
+  .cabecera-interior {
+    gap: 4px 16px;
+    padding-bottom: 4px;
+  }
+
+  .navegacion {
+    flex-basis: 100%;
+    flex-wrap: nowrap;
+    order: 3;
+    gap: 22px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .navegacion a {
+    padding: 12px 0 10px;
+    white-space: nowrap;
+  }
+
+  .navegacion a.activo {
+    padding-bottom: 8px;
+  }
+
+  .usuario span {
+    display: none;
+  }
+
+  .hero {
+    padding: 36px 0 88px;
+  }
+
+  .hero-compacto {
+    padding: 28px 0 80px;
+  }
+
+  .hero-lado {
+    gap: 20px 28px;
+  }
+
+  .cifra-hero-valor {
+    font-size: 34px;
+  }
+
+  .titulo-listado h2,
+  .grupo-hotel-titulo h2 {
+    font-size: 26px;
+  }
+
+  .grupo-hotel-titulo {
+    gap: 12px;
+  }
+
+  .miniatura-hotel {
+    width: 72px;
+  }
+
+  .modal-fondo {
+    padding: 16px 8px;
+  }
+
+  .modal-encabezado {
+    padding: 20px 20px 16px;
+  }
+
+  .modal-titulos h2 {
+    font-size: 28px;
+  }
+
+  .modal-cuerpo {
+    --relleno-x: 20px;
+    --relleno-y: 20px;
+  }
+
+  .modal-alerta .modal-cuerpo {
+    padding: 24px 20px;
+  }
+
+  .filtros {
+    padding: 16px;
+  }
+
+  .datos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .linea-estado {
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .linea-estado li,
+  .linea-estado .paso-final {
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .paso-linea {
+    display: none;
+  }
+
+  .paso-texto {
+    font-size: 11px;
+    white-space: normal;
+  }
+
+  .barras-v-columnas {
+    gap: 3px;
+  }
+
+  .barra-v-valor,
+  .barra-v-etiqueta {
+    font-size: 10px;
+  }
+
+  .barra-h {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .barra-h-etiqueta {
+    font-size: 12px;
+  }
+
+  .dona-contenedor {
+    justify-content: center;
+  }
+
+  .login-lado-foto {
+    min-height: 320px;
+  }
+
+  .login-foto-vacia {
+    justify-content: flex-start;
+    padding-top: 28px;
+  }
+
+  .login-foto-vacia span {
+    display: none;
+  }
+
+  .login-lema {
+    padding: 24px;
+  }
+
+  .login-lema-titulo {
+    font-size: 30px;
+  }
+
+  .login-lado-formulario {
+    padding: 40px 20px;
+  }
+
+  .paginacion {
+    justify-content: center;
+  }
+
+  /* Las tablas de listado se convierten en tarjetas; las de reportes siguen siendo tablas con desplazamiento. */
+  .tabla-bloque .tabla {
+    min-width: 0;
+  }
+
+  .tabla-bloque .tabla thead {
+    display: none;
+  }
+
+  .tabla-bloque .tabla,
+  .tabla-bloque .tabla tbody,
+  .tabla-bloque .tabla tr,
+  .tabla-bloque .tabla td {
+    display: block;
+    width: 100%;
+  }
+
+  .tabla-bloque .tabla tr {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--borde);
+  }
+
+  .tabla-bloque .tabla td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 6px 0;
+    border: 0;
+    text-align: right;
+  }
+
+  .tabla-bloque .tabla td::before {
+    content: attr(data-etiqueta);
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-align: left;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+  }
+
+  .tabla-bloque .tabla .celda {
+    min-width: 0;
+  }
+
+  .tabla-bloque .tabla .persona {
+    text-align: left;
+  }
+
+  .tabla-bloque .tabla .acciones-fila::before {
+    display: none;
+  }
+
+  .tabla-bloque .tabla .acciones-fila {
+    justify-content: flex-end;
+  }
+
+  .tabla-bloque .tabla .acciones-fila .celda {
+    width: 100%;
+  }
+
+  .reserva-codigo {
+    align-items: flex-end;
+  }
+}

@@ -18,7 +18,7 @@ export default function FormularioPago({ saldo, alRegistrar }) {
   });
 
   return (
-    <Formulario formulario={formulario} textoEnviar="Registrar pago">
+    <Formulario formulario={formulario} textoEnviar="Registrar pago" variante="oscuro">
       <Campo etiqueta="Monto (COP)" tipo="number" min="1" max={saldo} {...formulario.campo('monto')} />
       <Campo etiqueta="Método de pago" opciones={OPCIONES_METODO_PAGO} {...formulario.campo('metodo')} />
     </Formulario>

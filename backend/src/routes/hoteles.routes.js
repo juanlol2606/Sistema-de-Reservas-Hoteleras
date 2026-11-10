@@ -4,9 +4,11 @@ import { requerirAuth } from '../middlewares/auth.js';
 import { validar } from '../middlewares/validate.js';
 import { parametrosId } from '../schemas/comunes.js';
 import { filtrosHotelSchema, hotelParcialSchema, hotelSchema } from '../schemas/hotel.schema.js';
+import { crearRutasImagenes } from './imagenes.routes.js';
 
 const router = Router();
 
+router.use('/:id/imagenes', crearRutasImagenes('hoteles'));
 router.get('/', validar({ query: filtrosHotelSchema }), controlador.listar);
 router.get('/:id', validar({ params: parametrosId }), controlador.obtener);
 router.post('/', requerirAuth, validar({ body: hotelSchema }), controlador.crear);

@@ -10,14 +10,24 @@ export function useGestion({ api, mensajes, recargar }) {
   const [aEliminar, setAEliminar] = useState(null);
   const [errorAccion, setErrorAccion] = useState(null);
 
-  const terminar = (aviso) => {
-    mostrarAviso(aviso);
+  const terminar = (aviso, tipo) => {
+    mostrarAviso(aviso, tipo);
     recargar();
   };
 
-  const guardar = async (datos) => {
-    if (edicion === 'nuevo') await api.crear(datos);
-    else await api.reemplazar(edicion._id, datos);
+  // `despues(registro)` es opcional: se ejecuta con el registro ya guardado (por ejemplo, para subir sus fotos).
+  // Si falla, el formulario sigue abierto y ya apunta al registro guardado, para que reintentar no lo duplique.
+  const guardar = async (datos, despues) => {
+    const registro = edicion === 'nuevo' ? await api.crear(datos) : await api.reemplazar(edicion._id, datos);
+    if (despues) {
+      try {
+        await despues(registro);
+      } catch (error) {
+        setEdicion(registro);
+        terminar(`${mensajes.guardado}, pero no se pudieron subir todas las fotos`, 'error');
+        throw error;
+      }
+    }
     setEdicion(null);
     terminar(mensajes.guardado);
   };

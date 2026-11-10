@@ -11,11 +11,23 @@ const crearRecurso = (ruta) => ({
   eliminar: (id) => cliente.delete(`${ruta}/${id}`),
 });
 
-export const hoteles = crearRecurso('/hoteles');
+// Fotos de un hotel o una habitación. Devuelven el registro completo, con su arreglo `imagenes`.
+const crearImagenes = (ruta) => ({
+  subir: (id, archivos) => {
+    const formulario = new FormData();
+    archivos.forEach((archivo) => formulario.append('imagenes', archivo));
+    return cliente.post(`${ruta}/${id}/imagenes`, formulario).then(datos);
+  },
+  ordenar: (id, orden) => cliente.put(`${ruta}/${id}/imagenes/orden`, { orden }).then(datos),
+  eliminar: (id, publicId) => cliente.delete(`${ruta}/${id}/imagenes/${publicId}`).then(datos),
+});
+
+export const hoteles = { ...crearRecurso('/hoteles'), imagenes: crearImagenes('/hoteles') };
 export const huespedes = crearRecurso('/huespedes');
 
 export const habitaciones = {
   ...crearRecurso('/habitaciones'),
+  imagenes: crearImagenes('/habitaciones'),
   disponibles: (params) => cliente.get('/habitaciones/disponibles', { params }).then(datos),
 };
 

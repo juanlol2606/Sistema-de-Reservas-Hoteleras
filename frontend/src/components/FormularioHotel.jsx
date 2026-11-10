@@ -1,9 +1,13 @@
+import { hoteles } from '../api/recursos.js';
 import { useFormulario } from '../hooks/useFormulario.js';
+import { useFotos } from '../hooks/useFotos.js';
 import { OPCIONES_ESTRELLAS } from '../utils/catalogos.js';
 import { recortarTextos, separarPorComas } from '../utils/formato.js';
 import { conErrores, email, entero, telefono, textoObligatorio } from '../utils/validaciones.js';
 import Campo from './Campo.jsx';
 import Formulario from './Formulario.jsx';
+import Seccion from './Seccion.jsx';
+import SubirFotos from './SubirFotos.jsx';
 
 const VALORES_NUEVOS = {
   nombre: '',
@@ -24,6 +28,7 @@ const desdeHotel = (hotel) => ({
 });
 
 export default function FormularioHotel({ hotel, alGuardar, alCancelar }) {
+  const fotos = useFotos(hotel?.imagenes ?? [], hoteles.imagenes);
   const formulario = useFormulario({
     valores: hotel ? desdeHotel(hotel) : VALORES_NUEVOS,
     validar: (v) =>
@@ -37,27 +42,37 @@ export default function FormularioHotel({ hotel, alGuardar, alCancelar }) {
         'contacto.email': email(v.contacto.email),
       }),
     alEnviar: (v) =>
-      alGuardar({
-        nombre: v.nombre.trim(),
-        estrellas: Number(v.estrellas),
-        activo: v.activo,
-        direccion: recortarTextos(v.direccion),
-        contacto: recortarTextos(v.contacto),
-        servicios: separarPorComas(v.servicios),
-      }),
+      alGuardar(
+        {
+          nombre: v.nombre.trim(),
+          estrellas: Number(v.estrellas),
+          activo: v.activo,
+          direccion: recortarTextos(v.direccion),
+          contacto: recortarTextos(v.contacto),
+          servicios: separarPorComas(v.servicios),
+        },
+        (guardado) => fotos.sincronizar(guardado._id),
+      ),
   });
 
   return (
     <Formulario formulario={formulario} alCancelar={alCancelar}>
-      <Campo etiqueta="Nombre" {...formulario.campo('nombre')} />
-      <Campo etiqueta="Estrellas" opciones={OPCIONES_ESTRELLAS} {...formulario.campo('estrellas')} />
-      <Campo etiqueta="Calle y número" ancho="completo" {...formulario.campo('direccion.calle')} />
-      <Campo etiqueta="Ciudad" {...formulario.campo('direccion.ciudad')} />
-      <Campo etiqueta="País" {...formulario.campo('direccion.pais')} />
-      <Campo etiqueta="Teléfono" tipo="tel" {...formulario.campo('contacto.telefono')} />
-      <Campo etiqueta="Correo de contacto" tipo="email" {...formulario.campo('contacto.email')} />
-      <Campo etiqueta="Servicios" ancho="completo" ayuda="Separados por comas: wifi, piscina, desayuno" {...formulario.campo('servicios')} />
-      <Campo etiqueta="Hotel activo (recibe reservas)" tipo="checkbox" {...formulario.campo('activo')} />
+      <Seccion titulo="Fotos del hotel">
+        <SubirFotos fotos={fotos} etiquetaPortada="Fachada o lobby" />
+      </Seccion>
+      <Seccion titulo="Información">
+        <Campo etiqueta="Nombre" placeholder="Ej. Casa Bahía" {...formulario.campo('nombre')} />
+        <Campo etiqueta="Estrellas" opciones={OPCIONES_ESTRELLAS} {...formulario.campo('estrellas')} />
+        <Campo etiqueta="Calle y número" ancho="completo" placeholder="Ej. Calle del Arsenal # 8-27" {...formulario.campo('direccion.calle')} />
+        <Campo etiqueta="Ciudad" placeholder="Ej. Cartagena" {...formulario.campo('direccion.ciudad')} />
+        <Campo etiqueta="País" {...formulario.campo('direccion.pais')} />
+      </Seccion>
+      <Seccion titulo="Contacto">
+        <Campo etiqueta="Teléfono" tipo="tel" {...formulario.campo('contacto.telefono')} />
+        <Campo etiqueta="Correo de contacto" tipo="email" {...formulario.campo('contacto.email')} />
+      </Seccion>
+      <Campo etiqueta="Servicios" ancho="completo" placeholder="wifi, piscina, desayuno" ayuda="Separados por comas." {...formulario.campo('servicios')} />
+      <Campo etiqueta="Hotel activo" tipo="checkbox" ancho="completo" ayuda="Recibe reservas" {...formulario.campo('activo')} />
     </Formulario>
   );
 }

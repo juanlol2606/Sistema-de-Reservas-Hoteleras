@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { validadorEntero } from '../utils/validadores.js';
+import { campoImagenes } from './imagenes.js';
 
 const { Schema } = mongoose;
 
@@ -16,6 +17,7 @@ const habitacionSchema = new Schema(
     estado: { type: String, enum: ESTADOS_HABITACION, default: 'disponible' },
     activo: { type: Boolean, default: true },
     amenidades: { type: [String], default: [] },
+    imagenes: campoImagenes,
   },
   { collection: 'habitaciones', id: false, toJSON: { virtuals: true } },
 );

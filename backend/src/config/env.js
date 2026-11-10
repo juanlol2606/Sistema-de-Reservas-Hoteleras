@@ -15,6 +15,12 @@ export const config = {
     .map((origen) => origen.trim())
     .filter(Boolean),
   jwtExpiracion: '8h',
+  // Opcionales: solo se exigen cuando se sube o se borra una foto.
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
   get mongodbUri() {
     return leerVariableObligatoria('MONGODB_URI');
   },

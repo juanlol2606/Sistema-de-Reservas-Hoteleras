@@ -6,6 +6,8 @@ Guía paso a paso para dejar StayHub funcionando en internet, pensada para algui
 Navegador ──► Vercel (frontend) ──► Render (API) ──► MongoDB Atlas (base de datos)
 ```
 
+Las fotos de hoteles y habitaciones se guardan aparte, en Cloudinary (sección [8](#8-cloudinary-fotos-de-hoteles-y-habitaciones)).
+
 Todo con planes gratuitos. Duración estimada: entre 1 y 2 horas la primera vez.
 
 ## Contenido
@@ -18,8 +20,9 @@ Todo con planes gratuitos. Duración estimada: entre 1 y 2 horas la primera vez.
 5. [Vercel (frontend)](#5-vercel-frontend)
 6. [Cierre: CORS y pruebas en producción](#6-cierre-cors-y-pruebas-en-producción)
 7. [Problemas comunes](#7-problemas-comunes)
-8. [Capturas para la sección de evidencias](#8-capturas-para-la-sección-de-evidencias)
-9. [Qué está verificado y qué no](#9-qué-está-verificado-y-qué-no)
+8. [Cloudinary (fotos de hoteles y habitaciones)](#8-cloudinary-fotos-de-hoteles-y-habitaciones)
+9. [Capturas para la sección de evidencias](#9-capturas-para-la-sección-de-evidencias)
+10. [Qué está verificado y qué no](#10-qué-está-verificado-y-qué-no)
 
 ---
 
@@ -258,6 +261,7 @@ Atlas solo deja conectar a las direcciones IP de su lista de acceso (**IP Access
    ADMIN_PASSWORD=<contraseña-admin>
    ```
 
+   - Las fotos necesitan además tres variables de Cloudinary (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET`). Se agregan cuando tengas la cuenta: sección [8](#8-cloudinary-fotos-de-hoteles-y-habitaciones). Sin ellas, todo funciona menos subir fotos.
    - Sin comillas ni espacios alrededor del `=`.
    - `ADMIN_EMAIL` y `ADMIN_PASSWORD` son opcionales: solo los lee `pnpm seed`. **Si vas a publicar la app en internet, defínelos con valores propios**; si los omites, el seed crea el administrador de demostración que figura en el README, y esas credenciales son públicas.
 4. `frontend/.env` ya trae el valor correcto para trabajar en local:
@@ -399,6 +403,7 @@ Más abajo, en **Environment Variables** (si está plegado, abre **Advanced**), 
 | `CORS_ORIGIN` | `http://localhost:5173` por ahora; la cambiarás en el paso 6.1 |
 
 - Pega los valores **sin comillas**.
+- Para las **fotos** se agregan aquí mismo `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET`, cuando tengas la cuenta de Cloudinary: sección [8.4](#8-cloudinary-fotos-de-hoteles-y-habitaciones). Sin ellas la API arranca igual.
 - **No definas `PORT`**: Render lo asigna solo (10000 por defecto) y la API lo lee.
 - `ADMIN_EMAIL` y `ADMIN_PASSWORD` no hacen falta aquí: el seed se ejecuta desde tu computador.
 
@@ -549,6 +554,7 @@ Con el servicio despierto (abre antes `/api/health`), marca cada punto:
 - [ ] **Reportes:** abre **Reportes**; cargan las tarjetas y gráficas (**Ingresos por mes**, **Ocupación**, etc.) con datos.
 - [ ] **Recarga:** estando en `/reservas`, pulsa `F5`; la página vuelve a cargar sin 404.
 - [ ] **Cerrar sesión** y volver a ingresar funciona.
+- [ ] **Fotos** (si ya configuraste Cloudinary): en **Hoteles** → **Editar** → **Subir fotos**, sube una imagen y guarda; la tarjeta la muestra con el contador "1 / N fotos".
 
 ### 6.3 Limpieza al terminar la evaluación
 
@@ -600,7 +606,97 @@ Con el servicio despierto (abre antes `/api/health`), marca cada punto:
 
 ---
 
-## 8. Capturas para la sección de evidencias
+## 8. Cloudinary (fotos de hoteles y habitaciones)
+
+StayHub guarda las fotos en **Cloudinary**, no en MongoDB ni en el disco de Render (ese disco se borra cada vez que se vuelve a desplegar). En Mongo solo queda, dentro de cada hotel y habitación, un arreglo `imagenes: [{ url, publicId }]` con un máximo de 6 fotos; la primera es la portada.
+
+Es **opcional**: sin las credenciales todo lo demás funciona y solo subir fotos responde con un error 503 claro. Puedes hacer esta sección antes o después del despliegue.
+
+### 8.1 Crear la cuenta gratuita
+
+1. Entra a <https://cloudinary.com/users/register_free>.
+2. Regístrate con **Sign up with email**, con Google o con GitHub y acepta los términos. Según su página de precios, el plan **Free** no pide tarjeta.
+3. Si usaste correo, abre el mensaje de verificación y confírmalo.
+4. Es posible que un asistente de bienvenida te pregunte por tu rol o tu objetivo. Responde lo que quieras o sáltalo: no cambia nada para este proyecto. Si pregunta qué vas a usar, elige las **imágenes**.
+5. Cuando llegues al panel de Cloudinary (el **Console**), sigue con el 8.2.
+
+El plan Free incluye **25 créditos al mes**. Un crédito equivale a 1 GB de almacenamiento, 1 GB de ancho de banda de imágenes o 1.000 transformaciones, y se reparten entre los tres. Para este proyecto sobra. Si algún día te acercas al límite, Cloudinary te avisa por correo antes de deshabilitar la cuenta.
+
+**Captura:** el Console de Cloudinary recién abierto.
+
+### 8.2 Copiar las tres credenciales
+
+1. En el Console, abre **Settings** (el engranaje) y luego **API Keys**. Acceso directo: <https://console.cloudinary.com/app/settings/api-keys>.
+2. Allí aparecen tus datos. Copia cada uno a un archivo de texto **fuera del proyecto**:
+
+   | En Cloudinary se llama | En StayHub va en la variable | ¿Es secreto? |
+   |---|---|---|
+   | **Cloud Name** | `CLOUDINARY_CLOUD_NAME` | No: aparece en la URL de cada imagen |
+   | **API Key** | `CLOUDINARY_API_KEY` | No es secreta, pero no la subas al repositorio |
+   | **API Secret** | `CLOUDINARY_API_SECRET` | **Sí.** Nunca en el repositorio, ni en el frontend, ni en una captura |
+
+3. Para ver o copiar el **API Secret**, Cloudinary puede mostrar una ventana **Verification Required** y enviarte un código por correo (vale 5 minutos). Escríbelo y confirma. En las primeras 24 horas de una cuenta nueva no suele pedirlo.
+4. Si el panel muestra además una "API environment variable" (una línea que empieza por `cloudinary://`), **no la uses**: StayHub lee las tres variables por separado.
+
+**Captura:** la página **API Keys** con el **API Secret tapado**.
+
+### 8.3 Ponerlas en tu computador (`backend/.env`)
+
+1. Abre `backend/.env` y agrega estas tres líneas, con tus valores en lugar de los marcadores y sin comillas:
+
+   ```
+   CLOUDINARY_CLOUD_NAME=<cloud-name>
+   CLOUDINARY_API_KEY=<api-key>
+   CLOUDINARY_API_SECRET=<api-secret>
+   ```
+
+2. Reinicia la API (`Ctrl + C` y otra vez `pnpm dev`), porque las variables se leen al arrancar.
+3. **Pruébalo:** abre la app, entra a **Hoteles**, pulsa **Editar** en uno, **Subir fotos**, elige una o dos imágenes y **Guardar**. La tarjeta del hotel muestra la foto y el contador "1 / N fotos". Otra opción: las peticiones 39 a 52 de `backend/requests.http`.
+4. Entra a Cloudinary → **Media Library** (**Assets**) y comprueba que la imagen está en la carpeta `stayhub/hoteles`. Las de habitaciones van a `stayhub/habitaciones`.
+
+**Capturas:** la zona **Subir fotos** con vista previa, la tarjeta del hotel con su contador y la **Media Library** con la carpeta `stayhub`.
+
+### 8.4 Ponerlas en Render
+
+1. En Render, abre tu servicio y entra a **Environment**.
+2. Pulsa **Add Environment Variable** tres veces y agrega:
+
+   | Key | Value |
+   |---|---|
+   | `CLOUDINARY_CLOUD_NAME` | Tu **Cloud Name** |
+   | `CLOUDINARY_API_KEY` | Tu **API Key** |
+   | `CLOUDINARY_API_SECRET` | Tu **API Secret** |
+
+   Sin comillas ni espacios. Los nombres deben ser exactos.
+3. Pulsa **Save and deploy** y espera a que el servicio vuelva a estar **Live**.
+4. **Vercel no necesita nada:** el frontend recibe de la API las URL de las fotos y no usa las credenciales.
+5. Prueba en la URL de Vercel: sube una foto a un hotel y confirma que se ve y que aparece en Cloudinary.
+
+**Captura:** la pestaña **Environment** de Render con las tres claves nuevas (valores tapados).
+
+### 8.5 Cosas que conviene saber
+
+- **Borrar desde la app borra en Cloudinary.** Al eliminar una foto, una habitación o un hotel, se borran también sus fotos. Si Cloudinary falla en ese momento, el registro se borra igual y el motivo queda en el log de la API.
+- **`pnpm seed` no borra fotos de Cloudinary.** Vuelve a crear las colecciones de la base, pero las fotos que ya subiste quedan huérfanas en tu cuenta. Bórralas a mano en la **Media Library** (menú contextual de cada foto o selección múltiple y el icono de borrar), o evita sembrar de nuevo después de subir fotos.
+- **No borres a mano fotos que la app todavía muestra:** el hotel seguirá guardando su URL y verás el marco rayado en su lugar. Bórralas siempre desde la app.
+- **Qué se sube:** JPG, PNG o WEBP, hasta 5 MB cada una y hasta 6 por hotel o habitación. El servidor revisa el contenido del archivo, no solo su nombre. Cloudinary las limita a 1.600 px de ancho; el recorte, la calidad y el formato automáticos se piden en la URL con la que se muestran.
+- **Si el API Secret se filtró** (quedó en una captura, en Git o en un chat): en **Settings → API Keys** pulsa **Generate New API Key**, actualiza `backend/.env` y Render con la nueva, comprueba que todo funciona y pon la clave anterior en **Status → Disabled**.
+
+### 8.6 Problemas con las fotos
+
+| Síntoma | Causa y solución |
+|---|---|
+| "El servicio de imágenes no está configurado" (503) | Falta alguna de las tres variables, o el nombre está mal escrito. Revísalas en `backend/.env` o en **Environment** de Render y reinicia o vuelve a desplegar. |
+| "No se pudo subir la imagen" (502) | Cloudinary rechazó la subida: casi siempre alguna credencial no coincide (cloud name, API key o secret), con espacios o comillas de más, o la clave está deshabilitada. El motivo exacto sale en el log de la API como `Cloudinary rechazó la subida: ...`. |
+| "Solo se aceptan imágenes JPG, PNG o WEBP" (400) | El archivo no es una imagen de esos tipos (por ejemplo, GIF o HEIC) o su contenido no corresponde a su extensión. |
+| "Cada imagen debe pesar máximo 5 MB" o "admite máximo 6 imágenes" (400) | Reduce el peso o quita fotos antes de subir. |
+| El hotel se guardó pero avisa en rojo "no se pudieron subir todas las fotos" | El registro ya existe. El formulario queda abierto como **Editar**: corrige el problema (por ejemplo, quita la foto que falla) y vuelve a guardar; no se duplica. |
+| Se subió, pero se ve el marco rayado | La URL guardada no carga: comprueba en la **Media Library** que la imagen exista, o si la borraste a mano, bórrala también de la app y vuelve a subirla. |
+| Aparece **Verification Required** al copiar el secret | Es normal: escribe el código que llega a tu correo (vale 5 minutos). |
+
+---
+
+## 9. Capturas para la sección de evidencias
 
 Guárdalas en `docs/evidencias/` con nombres ordenados (por ejemplo `01-atlas-cluster.png`). **Antes de guardar cada una, tapa contraseñas, cadenas de conexión y la clave JWT.** Es mejor capturar la ventana completa del navegador, con la URL visible.
 
@@ -629,10 +725,15 @@ Guárdalas en `docs/evidencias/` con nombres ordenados (por ejemplo `01-atlas-cl
 | 21 | Esa misma reserva en Atlas (colección `reservas`, filtrada por código) | 6.2 |
 | 22 | Página **Reportes** con datos | 6.2 |
 | 23 | Recarga de `/reservas` sin 404 | 6.2 |
+| 24 | Página **API Keys** de Cloudinary, con el API Secret tapado | 8.2 |
+| 25 | Zona **Subir fotos** de un hotel con vista previa y el contador de la tarjeta | 8.3 |
+| 26 | **Media Library** de Cloudinary con la carpeta `stayhub/hoteles` | 8.3 |
+| 27 | Pestaña **Environment** de Render con las tres variables de Cloudinary (valores tapados) | 8.4 |
+| 28 | Una foto subida desde la URL de Vercel y visible en la tarjeta | 8.4 |
 
 ---
 
-## 9. Qué está verificado y qué no
+## 10. Qué está verificado y qué no
 
 - **Verificado en local** (contra un MongoDB real en memoria, no contra Atlas): `pnpm install`, `pnpm seed`, `pnpm dev`, `pnpm build` y los logs de la API. Además, `node backend/src/server.js` ejecutado desde la raíz del repositorio (el Start Command de Render) resuelve sus dependencias y reproduce los mensajes `Falta la variable de entorno MONGODB_URI` y `querySrv ENOTFOUND`. El resto de mensajes de error de Atlas de la sección 7 (`bad auth`, IP no permitida) son los habituales de Mongoose y Atlas, no se reprodujeron aquí.
 - **Contrastado con la documentación oficial (6 de noviembre de 2026):** Render (variable `PORT` 10000, orden de versión de Node, Root Directory, health check, suspensión a los 15 minutos, cerca de 1 minuto para despertar, IP de salida compartidas), Vercel (Root Directory, opción de archivos fuera del Root Directory, Corepack con `ENABLE_EXPERIMENTAL_COREPACK`, rewrites de Vite, variables de entorno y redeploy) y Atlas (pasos de creación del clúster y del usuario, lista de IP, cadena de conexión y caracteres a codificar, límites del plan gratuito).
@@ -640,4 +741,5 @@ Guárdalas en `docs/evidencias/` con nombres ordenados (por ejemplo `01-atlas-cl
   - Render no documenta pnpm ni Corepack, así que el **Build Command con `corepack enable`** es la parte con más riesgo; las alternativas están en la sección 7.
   - Vercel no documenta en las páginas consultadas qué comandos de Build e Install propone para Vite ni cómo instala un workspace de pnpm con el Root Directory en `frontend`.
   - La documentación de Atlas consultada no lista como no soportados `$lookup`, `$dateDiff` ni los índices con collation, pero tampoco los confirma como soportados en el plan gratuito. El primer `pnpm seed` y los **Reportes** contra Atlas son la prueba real.
+  - **Cloudinary:** las fotos se probaron en local con un Cloudinary simulado, no con una cuenta real. De la documentación oficial (10 de noviembre de 2026) salen la ruta **Settings → API Keys**, el código de verificación por correo, la rotación con **Generate New API Key** y los 25 créditos mensuales del plan Free. No está documentado en lo que consulté el nombre exacto del botón para revelar el secret, ni si las cuentas nuevas usan carpetas dinámicas por defecto (por eso la guía solo pide ver la imagen en la **Media Library**).
   - Los nombres exactos de menús y botones de Atlas (por ejemplo **Database & Network Access**, **Specific Privileges**, **Allow Access from Anywhere**, **Browse Collections**) y la región de Render más cercana a N. Virginia salen de la interfaz conocida y pueden haber cambiado.

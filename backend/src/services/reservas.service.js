@@ -13,7 +13,7 @@ import { validarCapacidad, validarFechas, validarHuespedActivo, validarReservabl
 
 const POBLAR = [
   { path: 'huesped', select: 'nombre email' },
-  { path: 'hotel', select: 'nombre direccion.ciudad' },
+  { path: 'hotel', select: { nombre: 1, 'direccion.ciudad': 1, imagenes: { $slice: 1 } } },
 ];
 
 // Regla 6: con pagos >= 30 % del total la reserva pasa a confirmada.

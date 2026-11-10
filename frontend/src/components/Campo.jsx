@@ -1,9 +1,29 @@
 import { useId } from 'react';
 
 // Campo de formulario o de filtro: etiqueta + control + mensaje de error. `opciones` lo convierte en un select.
-export default function Campo({ etiqueta, nombre, valor, error, alCambiar, tipo = 'text', opciones, textoVacio, ayuda, ancho, ...resto }) {
+// `accion` es un botón opcional que se monta dentro del control (por ejemplo, "Mostrar" en la contraseña).
+export default function Campo({ etiqueta, nombre, valor, error, alCambiar, tipo = 'text', opciones, textoVacio, ayuda, ancho, accion, ...resto }) {
   const id = `campo-${nombre}-${useId()}`;
   const propiedades = { id, name: nombre, 'aria-invalid': Boolean(error), 'aria-describedby': error ? `${id}-error` : undefined };
+  const claseAncho = ancho === 'completo' ? ' campo-completo' : '';
+  const mensajeError = error && (
+    <small id={`${id}-error`} className="campo-error">
+      {error}
+    </small>
+  );
+
+  if (tipo === 'checkbox') {
+    return (
+      <div className={`campo campo-casilla${claseAncho}`}>
+        <input {...propiedades} type="checkbox" checked={Boolean(valor)} onChange={(evento) => alCambiar(evento.target.checked)} {...resto} />
+        <span className="campo-casilla-texto">
+          <label htmlFor={id}>{etiqueta}</label>
+          {ayuda && !error && <small className="campo-ayuda">{ayuda}</small>}
+          {mensajeError}
+        </span>
+      </div>
+    );
+  }
 
   let control;
   if (opciones) {
@@ -17,8 +37,6 @@ export default function Campo({ etiqueta, nombre, valor, error, alCambiar, tipo 
         ))}
       </select>
     );
-  } else if (tipo === 'checkbox') {
-    control = <input {...propiedades} type="checkbox" checked={Boolean(valor)} onChange={(evento) => alCambiar(evento.target.checked)} {...resto} />;
   } else if (tipo === 'textarea') {
     control = <textarea {...propiedades} rows={3} value={valor} onChange={(evento) => alCambiar(evento.target.value)} {...resto} />;
   } else {
@@ -26,15 +44,18 @@ export default function Campo({ etiqueta, nombre, valor, error, alCambiar, tipo 
   }
 
   return (
-    <div className={`campo ${tipo === 'checkbox' ? 'campo-casilla' : ''} ${ancho === 'completo' ? 'campo-completo' : ''}`}>
+    <div className={`campo${claseAncho}`}>
       <label htmlFor={id}>{etiqueta}</label>
-      {control}
-      {ayuda && !error && <small className="campo-ayuda">{ayuda}</small>}
-      {error && (
-        <small id={`${id}-error`} className="campo-error">
-          {error}
-        </small>
+      {accion ? (
+        <span className="campo-control">
+          {control}
+          {accion}
+        </span>
+      ) : (
+        control
       )}
+      {ayuda && !error && <small className="campo-ayuda">{ayuda}</small>}
+      {mensajeError}
     </div>
   );
 }

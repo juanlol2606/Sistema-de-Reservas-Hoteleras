@@ -1,10 +1,14 @@
+import { habitaciones } from '../api/recursos.js';
 import { useFormulario } from '../hooks/useFormulario.js';
+import { useFotos } from '../hooks/useFotos.js';
 import { useOpcionesDeHoteles } from '../hooks/useOpciones.js';
 import { OPCIONES_ESTADO_HABITACION, OPCIONES_TIPO_HABITACION } from '../utils/catalogos.js';
 import { separarPorComas } from '../utils/formato.js';
 import { conErrores, entero, numeroPositivo, requerido, textoObligatorio } from '../utils/validaciones.js';
 import Campo from './Campo.jsx';
 import Formulario from './Formulario.jsx';
+import Seccion from './Seccion.jsx';
+import SubirFotos from './SubirFotos.jsx';
 
 const VALORES_NUEVOS = {
   hotelId: '',
@@ -30,6 +34,7 @@ const desdeHabitacion = (h) => ({
 
 export default function FormularioHabitacion({ habitacion, alGuardar, alCancelar }) {
   const opcionesDeHoteles = useOpcionesDeHoteles();
+  const fotos = useFotos(habitacion?.imagenes ?? [], habitaciones.imagenes);
 
   const formulario = useFormulario({
     valores: habitacion ? desdeHabitacion(habitacion) : VALORES_NUEVOS,
@@ -51,12 +56,15 @@ export default function FormularioHabitacion({ habitacion, alGuardar, alCancelar
         activo: v.activo,
         amenidades: separarPorComas(v.amenidades),
       };
-      return alGuardar(habitacion ? datos : { ...datos, hotelId: v.hotelId });
+      return alGuardar(habitacion ? datos : { ...datos, hotelId: v.hotelId }, (guardada) => fotos.sincronizar(guardada._id));
     },
   });
 
   return (
     <Formulario formulario={formulario} alCancelar={alCancelar}>
+      <Seccion titulo="Fotos de la habitación">
+        <SubirFotos fotos={fotos} etiquetaPortada="Cama y vista principal" icono="cama" />
+      </Seccion>
       <Campo
         etiqueta="Hotel"
         ancho="completo"
@@ -65,13 +73,13 @@ export default function FormularioHabitacion({ habitacion, alGuardar, alCancelar
         ayuda={habitacion ? 'El hotel de una habitación no se puede cambiar.' : undefined}
         {...formulario.campo('hotelId')}
       />
-      <Campo etiqueta="Número" {...formulario.campo('numero')} />
+      <Campo etiqueta="Número" placeholder="Ej. 201" {...formulario.campo('numero')} />
       <Campo etiqueta="Tipo" opciones={OPCIONES_TIPO_HABITACION} {...formulario.campo('tipo')} />
       <Campo etiqueta="Capacidad (huéspedes)" tipo="number" min="1" {...formulario.campo('capacidad')} />
-      <Campo etiqueta="Precio por noche (COP)" tipo="number" min="0" step="1000" {...formulario.campo('precioNoche')} />
+      <Campo etiqueta="Precio por noche (COP)" tipo="number" min="0" step="1000" placeholder="Ej. 250000" {...formulario.campo('precioNoche')} />
       <Campo etiqueta="Estado" opciones={OPCIONES_ESTADO_HABITACION} {...formulario.campo('estado')} />
       <Campo etiqueta="Habitación activa" tipo="checkbox" {...formulario.campo('activo')} />
-      <Campo etiqueta="Amenidades" ancho="completo" ayuda="Separadas por comas: wifi, minibar, jacuzzi" {...formulario.campo('amenidades')} />
+      <Campo etiqueta="Amenidades" ancho="completo" placeholder="wifi, minibar, jacuzzi" ayuda="Separadas por comas." {...formulario.campo('amenidades')} />
     </Formulario>
   );
 }

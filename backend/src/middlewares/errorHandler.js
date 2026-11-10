@@ -1,3 +1,5 @@
+import { ErrorHttp } from '../utils/errores.js';
+
 // Respuesta uniforme de errores: { error, detalle }.
 const MENSAJES_DUPLICADO = {
   'huespedes:email': 'Ya existe un huésped con ese email',
@@ -45,7 +47,7 @@ function traducirError(err) {
   if (err.name === 'CastError') {
     return { status: 400, error: 'Datos inválidos', detalle: [{ campo: err.path, mensaje: 'tiene un formato inválido' }] };
   }
-  if (err.status && err.status < 500) {
+  if (err instanceof ErrorHttp || (err.status && err.status < 500)) {
     return { status: err.status, error: err.message, detalle: err.detalle };
   }
   return { status: 500, error: 'Error interno del servidor' };

@@ -328,3 +328,179 @@ Authorization: Bearer {{token}}
 ### 38. Rango inválido (desde posterior a hasta) -> 400
 GET {{host}}/reportes/ingresos-por-mes?desde={{hoy}}&hasta={{ayer}}
 Authorization: Bearer {{token}}
+
+
+# ---------------------------------------------------------------------------------------------
+# Fotos en Cloudinary (hoteles y habitaciones). Requieren CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY
+# y CLOUDINARY_API_SECRET en backend/.env. Se suben como multipart/form-data, campo "imagenes".
+# Antes: copia 3 fotos JPG, PNG o WEBP a backend/imagenes-prueba/ (carpeta ignorada por Git) con los
+# nombres foto1.jpg, foto2.jpg y foto3.jpg. Las peticiones 39 a 52 usan el hotel y la habitación de la 5.
+# Reglas: JPG, PNG o WEBP, máximo 5 MB cada una, máximo 6 por registro; la primera es la portada.
+# ---------------------------------------------------------------------------------------------
+
+### 39. Subir dos fotos a un hotel -> 201 con el hotel y su arreglo imagenes [{ url, publicId }]
+# @name subirHotel
+POST {{host}}/hoteles/{{hotelId}}/imagenes
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FronteraStayHub
+
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto1.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto1.jpg
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto2.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto2.jpg
+--FronteraStayHub--
+
+@publicIdHotel1 = {{subirHotel.response.body.$.imagenes[0].publicId}}
+@publicIdHotel2 = {{subirHotel.response.body.$.imagenes[1].publicId}}
+
+
+### 40. Subir sin token -> 401
+POST {{host}}/hoteles/{{hotelId}}/imagenes
+Content-Type: multipart/form-data; boundary=FronteraStayHub
+
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto1.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto1.jpg
+--FronteraStayHub--
+
+
+### 41. Un archivo que dice ser JPG pero es texto -> 400 (se revisa el contenido, no el nombre)
+POST {{host}}/hoteles/{{hotelId}}/imagenes
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FronteraStayHub
+
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="falsa.jpg"
+Content-Type: image/jpeg
+
+Esto es texto, no una imagen.
+--FronteraStayHub--
+
+
+### 42. Sin ningún archivo -> 400
+POST {{host}}/hoteles/{{hotelId}}/imagenes
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FronteraStayHub
+
+--FronteraStayHub
+Content-Disposition: form-data; name="otro"
+
+nada
+--FronteraStayHub--
+
+
+### 43. Más de 6 fotos en total (ya tiene 2 y se envían 5) -> 400
+POST {{host}}/hoteles/{{hotelId}}/imagenes
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FronteraStayHub
+
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto1.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto1.jpg
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto2.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto2.jpg
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto3.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto3.jpg
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto1.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto1.jpg
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto2.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto2.jpg
+--FronteraStayHub--
+
+
+### 44. (Opcional) Una foto de más de 5 MB -> 400. Copia un archivo grande como backend/imagenes-prueba/grande.jpg
+POST {{host}}/hoteles/{{hotelId}}/imagenes
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FronteraStayHub
+
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="grande.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/grande.jpg
+--FronteraStayHub--
+
+
+### 45. Cambiar el orden: la segunda foto pasa a ser la portada -> 200
+PUT {{host}}/hoteles/{{hotelId}}/imagenes/orden
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "orden": ["{{publicIdHotel2}}", "{{publicIdHotel1}}"]
+}
+
+
+### 46. Orden con un publicId que no es del hotel -> 400
+PUT {{host}}/hoteles/{{hotelId}}/imagenes/orden
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "orden": ["{{publicIdHotel2}}", "stayhub/hoteles/no-existe"]
+}
+
+
+### 47. El hotel (y el listado) devuelven las fotos en el nuevo orden
+GET {{host}}/hoteles/{{hotelId}}
+
+
+### 48. Borrar una foto del hotel; el publicId lleva carpetas y va tal cual en la ruta -> 200 con el hotel actualizado
+DELETE {{host}}/hoteles/{{hotelId}}/imagenes/{{publicIdHotel1}}
+Authorization: Bearer {{token}}
+
+
+### 49. Borrar la misma foto otra vez -> 404
+DELETE {{host}}/hoteles/{{hotelId}}/imagenes/{{publicIdHotel1}}
+Authorization: Bearer {{token}}
+
+
+### 50. Subir una foto a una habitación -> 201 (queda en la carpeta stayhub/habitaciones)
+# @name subirHabitacion
+POST {{host}}/habitaciones/{{habitacionId}}/imagenes
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=FronteraStayHub
+
+--FronteraStayHub
+Content-Disposition: form-data; name="imagenes"; filename="foto3.jpg"
+Content-Type: image/jpeg
+
+< ./imagenes-prueba/foto3.jpg
+--FronteraStayHub--
+
+@publicIdHabitacion = {{subirHabitacion.response.body.$.imagenes[0].publicId}}
+
+
+### 51. Las habitaciones disponibles también traen sus fotos
+GET {{host}}/habitaciones/disponibles?hotelId={{hotelId}}&limit=3
+
+
+### 52. Limpieza: borrar la foto de la habitación y la que queda en el hotel
+DELETE {{host}}/habitaciones/{{habitacionId}}/imagenes/{{publicIdHabitacion}}
+Authorization: Bearer {{token}}
+
+###
+DELETE {{host}}/hoteles/{{hotelId}}/imagenes/{{publicIdHotel2}}
+Authorization: Bearer {{token}}

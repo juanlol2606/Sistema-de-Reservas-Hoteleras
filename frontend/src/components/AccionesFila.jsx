@@ -1,15 +1,17 @@
+import Boton from './Boton.jsx';
+
 export default function AccionesFila({ activo, alEditar, alAlternarActivo, alEliminar }) {
   return (
-    <>
-      <button type="button" className="boton boton-pequeno boton-enlace" onClick={alEditar}>
+    <div className="acciones-registro">
+      <Boton variante="accion" onClick={alEditar}>
         Editar
-      </button>
-      <button type="button" className="boton boton-pequeno boton-enlace" onClick={alAlternarActivo}>
+      </Boton>
+      <Boton variante={activo ? 'accion-dorado' : 'accion-exito'} onClick={alAlternarActivo}>
         {activo ? 'Desactivar' : 'Activar'}
-      </button>
-      <button type="button" className="boton boton-pequeno boton-enlace peligro" onClick={alEliminar}>
+      </Boton>
+      <Boton variante="accion-peligro" onClick={alEliminar}>
         Eliminar
-      </button>
-    </>
+      </Boton>
+    </div>
   );
 }

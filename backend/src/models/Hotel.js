@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { validadorEntero } from '../utils/validadores.js';
+import { campoImagenes } from './imagenes.js';
 
 const { Schema } = mongoose;
 
@@ -19,6 +20,7 @@ const hotelSchema = new Schema(
     },
     servicios: { type: [String], default: [] },
     calificacionPromedio: { type: Number, default: 0, min: 0, max: 5 },
+    imagenes: campoImagenes,
   },
   { collection: 'hoteles' },
 );
