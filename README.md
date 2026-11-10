@@ -36,7 +36,6 @@ stayhub/
 ├── package.json                 Scripts del workspace y versión de pnpm (packageManager)
 ├── pnpm-workspace.yaml          Declara backend y frontend como proyectos del workspace
 ├── pnpm-lock.yaml               Lockfile único de todo el monorepo
-├── design/stayhub-html/         Diseño de referencia (HTML estáticos); no forma parte de la app
 ├── docs/
 │   ├── despliegue.md            Guía paso a paso: Atlas, Render, Vercel y Cloudinary
 │   └── evidencias/              Capturas del proyecto
