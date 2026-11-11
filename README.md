@@ -39,8 +39,6 @@ stayhub/
 ├── pnpm-lock.yaml               Lockfile único de todo el monorepo
 ├── docs/
 │   ├── despliegue.md            Guía paso a paso: Atlas, Render, Vercel y Cloudinary
-│   ├── formato-factura.html     Diseño de referencia de la factura en PDF
-│   ├── calendario-mockup.html   Diseño de referencia del calendario de ocupación
 │   └── evidencias/              Capturas del proyecto
 ├── backend/
 │   ├── requests.http            Peticiones de prueba (extensión REST Client de VS Code)
@@ -218,7 +216,7 @@ Todas están en `backend/src/services/`.
 
 Además:
 
-- **Factura:** el PDF se dibuja con pdfkit siguiendo `docs/formato-factura.html` (sin IVA: el total es el de la reserva). Al emitir se guarda en la reserva el subdocumento `factura { numero, fechaEmision, emisor, cliente }`, una copia de los datos del hotel y del huésped de ese momento: si ellos cambian después, la factura reimpresa sale igual. El número sale de la colección `contadores` con `findOneAndUpdate` + `$inc` + `upsert`; el update que guarda la factura exige que la reserva aún no tenga una, y `factura.numero` tiene índice único. Dos clics simultáneos no emiten dos facturas; si otra instancia ganara la carrera, el número que este proceso había tomado queda sin usar (el consecutivo nunca se repite, pero podría saltarse uno).
+- **Factura:** el PDF se dibuja con pdfkit (sin IVA: el total es el de la reserva). Al emitir se guarda en la reserva el subdocumento `factura { numero, fechaEmision, emisor, cliente }`, una copia de los datos del hotel y del huésped de ese momento: si ellos cambian después, la factura reimpresa sale igual. El número sale de la colección `contadores` con `findOneAndUpdate` + `$inc` + `upsert`; el update que guarda la factura exige que la reserva aún no tenga una, y `factura.numero` tiene índice único. Dos clics simultáneos no emiten dos facturas; si otra instancia ganara la carrera, el número que este proceso había tomado queda sin usar (el consecutivo nunca se repite, pero podría saltarse uno).
 - Cancelar una reserva conserva sus pagos (no hay reembolso automático).
 - `DELETE /reservas/:id` solo borra reservas pendientes o canceladas que no tengan pagos.
 - La detección de traslapes se ejecuta de una en una por habitación dentro del proceso, y la creación verifica de nuevo al guardar. Así, solicitudes simultáneas por la misma habitación no producen doble reserva.

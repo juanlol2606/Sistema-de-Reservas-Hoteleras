@@ -10,7 +10,7 @@ import {
   formatearDinero,
 } from '../utils/formatoFactura.js';
 
-// El diseño (docs/formato-factura.html) está en píxeles CSS de una hoja A4 a 96 ppp; el PDF trabaja en puntos (0,75 pt por px).
+// El diseño de la factura está medido en píxeles CSS de una hoja A4 a 96 ppp; el PDF trabaja en puntos (0,75 pt por px).
 const PT_POR_PX = 0.75;
 const ANCHO = 793.7;
 const ALTO = 1122.5;
