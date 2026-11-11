@@ -2,6 +2,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { conectarBaseDeDatos } from '../config/db.js';
+import Contador from '../models/Contador.js';
 import Hotel from '../models/Hotel.js';
 import Habitacion from '../models/Habitacion.js';
 import Huesped from '../models/Huesped.js';
@@ -24,6 +25,8 @@ async function sembrar() {
 
   await Promise.all(MODELOS.map((Modelo) => Modelo.deleteMany({})));
   await Promise.all(MODELOS.map((Modelo) => Modelo.syncIndexes()));
+  // Las facturas desaparecen con las reservas: el consecutivo vuelve a empezar.
+  await Contador.deleteMany({});
 
   const datos = generarDatos();
   await Hotel.insertMany(datos.hoteles);

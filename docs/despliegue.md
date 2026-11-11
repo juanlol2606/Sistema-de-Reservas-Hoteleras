@@ -555,6 +555,7 @@ Con el servicio despierto (abre antes `/api/health`), marca cada punto:
 - [ ] **Recarga:** estando en `/reservas`, pulsa `F5`; la página vuelve a cargar sin 404.
 - [ ] **Cerrar sesión** y volver a ingresar funciona.
 - [ ] **Fotos** (si ya configuraste Cloudinary): en **Hoteles** → **Editar** → **Subir fotos**, sube una imagen y guarda; la tarjeta la muestra con el contador "1 / N fotos".
+- [ ] **Factura:** en **Reservas** filtra por estado **Finalizada**, abre una y pulsa **Generar factura**. Se descarga `FAC-00000N.pdf` y el botón pasa a **Descargar factura FAC-00000N**; al pulsarlo otra vez se descarga el mismo número. No necesita variables nuevas: pdfkit llega con el `pnpm-lock.yaml` y las fuentes del PDF viajan en el repositorio (`backend/assets/fonts`).
 
 ### 6.3 Limpieza al terminar la evaluación
 
@@ -590,6 +591,8 @@ Con el servicio despierto (abre antes `/api/health`), marca cada punto:
 | Quedó la versión equivocada de Node | Define la variable `NODE_VERSION` (por ejemplo `22.12.0`) y vuelve a desplegar. |
 | Cambié una variable y no pasa nada | Hay que guardar con **Save and deploy**; **Restart service** no aplica variables nuevas. |
 | La primera petición tarda un minuto | El plan gratuito estaba dormido. Es normal (paso 4.8). |
+| La factura responde 500 y los logs dicen `ENOENT … assets/fonts` | La carpeta `backend/assets/fonts` no llegó al repositorio. Ejecuta `git add backend/assets`, haz commit y `git push`; Render vuelve a desplegar. |
+| La factura se descarga en la app local pero en Vercel falla con un error de red | Render debe tener `CORS_ORIGIN` con la URL exacta de Vercel (paso 6.1); la API ya expone la cabecera `Content-Disposition` con el nombre del PDF. |
 
 ### Vercel y navegador
 
@@ -730,6 +733,8 @@ Guárdalas en `docs/evidencias/` con nombres ordenados (por ejemplo `01-atlas-cl
 | 26 | **Media Library** de Cloudinary con la carpeta `stayhub/hoteles` | 8.3 |
 | 27 | Pestaña **Environment** de Render con las tres variables de Cloudinary (valores tapados) | 8.4 |
 | 28 | Una foto subida desde la URL de Vercel y visible en la tarjeta | 8.4 |
+| 29 | Detalle de una reserva finalizada con el botón **Descargar factura FAC-00000N** y la línea "emitida el…" | 6.2 |
+| 30 | El PDF de la factura abierto (sale de la descarga hecha desde la URL de Vercel) | 6.2 |
 
 ---
 
@@ -742,4 +747,5 @@ Guárdalas en `docs/evidencias/` con nombres ordenados (por ejemplo `01-atlas-cl
   - Vercel no documenta en las páginas consultadas qué comandos de Build e Install propone para Vite ni cómo instala un workspace de pnpm con el Root Directory en `frontend`.
   - La documentación de Atlas consultada no lista como no soportados `$lookup`, `$dateDiff` ni los índices con collation, pero tampoco los confirma como soportados en el plan gratuito. El primer `pnpm seed` y los **Reportes** contra Atlas son la prueba real.
   - **Cloudinary:** las fotos se probaron en local con un Cloudinary simulado, no con una cuenta real. De la documentación oficial (10 de noviembre de 2026) salen la ruta **Settings → API Keys**, el código de verificación por correo, la rotación con **Generate New API Key** y los 25 créditos mensuales del plan Free. No está documentado en lo que consulté el nombre exacto del botón para revelar el secret, ni si las cuentas nuevas usan carpetas dinámicas por defecto (por eso la guía solo pide ver la imagen en la **Media Library**).
+  - **Factura en PDF:** se verificó en local, con la API real sobre un MongoDB en memoria y el frontend en el navegador: descarga con el nombre `FAC-000001.pdf`, segunda descarga con los mismos bytes, consecutivos, 409 en reservas no finalizadas, seis clics simultáneos sobre una reserva con un solo número y la cabecera `Content-Disposition` legible desde otro origen. No se probó la descarga contra Render y Vercel reales.
   - Los nombres exactos de menús y botones de Atlas (por ejemplo **Database & Network Access**, **Specific Privileges**, **Allow Access from Anywhere**, **Browse Collections**) y la región de Render más cercana a N. Virginia salen de la interfaz conocida y pueden haber cambiado.

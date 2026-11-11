@@ -504,3 +504,49 @@ Authorization: Bearer {{token}}
 ###
 DELETE {{host}}/hoteles/{{hotelId}}/imagenes/{{publicIdHotel2}}
 Authorization: Bearer {{token}}
+
+
+# ---------------------------------------------------------------------------------------------
+# Facturas. GET /api/reservas/:id/factura exige token y solo factura reservas finalizadas.
+#  - La primera vez emite la factura (número FAC-000001, FAC-000002… y fecha); las siguientes regeneran el PDF con los datos guardados.
+#  - Usa la reserva que se finalizó en el punto 19. Con "Save Response Body" de REST Client se guarda el PDF.
+# ---------------------------------------------------------------------------------------------
+
+### 53. Factura de la reserva finalizada: responde application/pdf con attachment; filename="FAC-00000N.pdf"
+GET {{host}}/reservas/{{reservaId}}/factura
+Authorization: Bearer {{token}}
+
+
+### 54. El detalle de la reserva ya trae el subdocumento factura (número, fecha, y la copia de emisor y cliente)
+# @name conFactura
+GET {{host}}/reservas/{{reservaId}}
+Authorization: Bearer {{token}}
+
+@numeroFactura = {{conFactura.response.body.$.factura.numero}}
+
+
+### 55. Segunda descarga: no emite otro número; el PDF sale con los mismos datos guardados (mismo número que el punto 54)
+GET {{host}}/reservas/{{reservaId}}/factura
+Authorization: Bearer {{token}}
+
+
+### 56. Una reserva que no está finalizada (la del punto 26, cancelada en el 28) -> 409
+GET {{host}}/reservas/{{reservaPendienteId}}/factura
+Authorization: Bearer {{token}}
+
+
+### 57. Sin token -> 401
+GET {{host}}/reservas/{{reservaId}}/factura
+
+
+### 58. Otra reserva finalizada (la segunda del listado) -> recibe el número siguiente
+# @name otraFinalizada
+GET {{host}}/reservas?estado=finalizada&page=2&limit=1
+Authorization: Bearer {{token}}
+
+@otraReservaId = {{otraFinalizada.response.body.$.data[0]._id}}
+
+
+### 59. Su factura sale con el consecutivo que sigue
+GET {{host}}/reservas/{{otraReservaId}}/factura
+Authorization: Bearer {{token}}

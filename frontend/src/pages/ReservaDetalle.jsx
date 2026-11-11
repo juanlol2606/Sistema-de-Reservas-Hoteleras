@@ -17,7 +17,8 @@ import Pagina from '../components/Pagina.jsx';
 import Tarjeta from '../components/Tarjeta.jsx';
 import { useAvisos } from '../context/AvisosContext.jsx';
 import { ETIQUETAS_METODO_PAGO, ETIQUETAS_TIPO_HABITACION } from '../utils/catalogos.js';
-import { formatearFecha, formatearFechaHora, formatearPesos } from '../utils/formato.js';
+import { descargarArchivo } from '../utils/descargas.js';
+import { formatearDiaBogota, formatearFecha, formatearFechaHora, formatearPesos } from '../utils/formato.js';
 import { urlDeFoto } from '../utils/imagenes.js';
 
 // Solo orienta qué botones mostrar; la API es la que valida cada transición.
@@ -54,6 +55,7 @@ export default function ReservaDetalle() {
   const [dialogo, setDialogo] = useState(null);
   const [errorAccion, setErrorAccion] = useState(null);
   const [fotosHabitacion, setFotosHabitacion] = useState([]);
+  const [generandoFactura, setGenerandoFactura] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -145,9 +147,27 @@ export default function ReservaDetalle() {
     await cargar();
   };
 
+  const descargarFactura = async () => {
+    setErrorAccion(null);
+    setGenerandoFactura(true);
+    try {
+      const { archivo, nombre } = await reservas.factura(id);
+      descargarArchivo(archivo, nombre);
+      if (!reserva.factura) {
+        mostrarAviso('Factura generada');
+        await cargar();
+      }
+    } catch (fallo) {
+      setErrorAccion(describirError(fallo));
+    } finally {
+      setGenerandoFactura(false);
+    }
+  };
+
   const porcentajePagado = reserva.total ? Math.min(100, Math.round((reserva.totalPagado / reserva.total) * 100)) : 0;
   const acciones = ACCIONES_POR_ESTADO[reserva.estado];
   const puedeEliminar = ESTADOS_ELIMINABLES.includes(reserva.estado) && reserva.pagos.length === 0;
+  const textoBotonFactura = reserva.factura ? `Descargar factura ${reserva.factura.numero}` : 'Generar factura';
 
   return (
     <Pagina
@@ -288,6 +308,11 @@ export default function ReservaDetalle() {
             <p className="texto-suave texto-pequeno">
               {porcentajePagado} % pagado. Con el {UMBRAL_CONFIRMACION} % la reserva se confirma sola.
             </p>
+            {reserva.factura && (
+              <p className="texto-suave texto-pequeno">
+                Factura {reserva.factura.numero} · emitida el {formatearDiaBogota(reserva.factura.fechaEmision)}
+              </p>
+            )}
           </Tarjeta>
 
           <Tarjeta className="panel">
@@ -303,6 +328,11 @@ export default function ReservaDetalle() {
                   {accion.texto}
                 </Boton>
               ))}
+              {reserva.estado === 'finalizada' && (
+                <Boton variante="dorado" bloque disabled={generandoFactura} onClick={descargarFactura}>
+                  {generandoFactura ? 'Generando…' : textoBotonFactura}
+                </Boton>
+              )}
               {ESTADOS_MODIFICABLES.includes(reserva.estado) && (
                 <Boton bloque onClick={() => setDialogo({ tipo: 'modificar' })}>
                   Modificar fechas o habitación

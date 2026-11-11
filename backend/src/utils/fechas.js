@@ -2,9 +2,10 @@
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
 const formateadorBogota = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' });
 
-export function obtenerHoy() {
-  return new Date(`${formateadorBogota.format(new Date())}T00:00:00.000Z`);
-}
+// Día calendario que marca un instante en Bogotá, como medianoche UTC (igual que las fechas de reserva).
+export const diaEnBogota = (instante) => new Date(`${formateadorBogota.format(instante)}T00:00:00.000Z`);
+
+export const obtenerHoy = () => diaEnBogota(new Date());
 
 export function sumarDias(fecha, dias) {
   return new Date(fecha.getTime() + dias * MS_POR_DIA);

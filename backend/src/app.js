@@ -6,7 +6,8 @@ import { rutaNoEncontrada, manejarErrores } from './middlewares/errorHandler.js'
 
 const app = express();
 
-app.use(cors({ origin: config.origenesPermitidos }));
+// Content-Disposition lleva el nombre del PDF de la factura; sin exponerlo, el navegador no deja leerlo desde otro origen.
+app.use(cors({ origin: config.origenesPermitidos, exposedHeaders: ['Content-Disposition'] }));
 app.use(express.json());
 
 app.use('/api', rutas);

@@ -17,6 +17,37 @@ const pagoSchema = new Schema(
   { _id: false },
 );
 
+// Copia de los datos del hotel y del huésped al emitir: la factura reimpresa sale idéntica aunque ellos cambien después.
+const facturaSchema = new Schema(
+  {
+    numero: { type: String, required: true },
+    fechaEmision: { type: Date, required: true },
+    emisor: {
+      nombre: { type: String, required: true },
+      direccion: {
+        calle: { type: String, required: true },
+        ciudad: { type: String, required: true },
+        pais: { type: String, required: true },
+      },
+      contacto: {
+        telefono: { type: String, required: true },
+        email: { type: String, required: true },
+      },
+    },
+    cliente: {
+      nombre: { type: String, required: true },
+      documento: {
+        tipo: { type: String, required: true },
+        numero: { type: String, required: true },
+      },
+      ciudadOrigen: { type: String, required: true },
+      telefono: { type: String, required: true },
+      email: { type: String, required: true },
+    },
+  },
+  { _id: false },
+);
+
 const reservaSchema = new Schema(
   {
     codigo: { type: String, required: true, trim: true },
@@ -36,6 +67,7 @@ const reservaSchema = new Schema(
     },
     pagos: { type: [pagoSchema], default: [] },
     total: { type: Number, required: true, min: 0 },
+    factura: { type: facturaSchema },
   },
   { collection: 'reservas', id: false, toJSON: { virtuals: true } },
 );
@@ -54,6 +86,8 @@ reservaSchema.virtual('saldo').get(function saldo() {
 });
 
 reservaSchema.index({ codigo: 1 }, { unique: true });
+// Respaldo del consecutivo: dos reservas nunca comparten número de factura (las que no tienen factura no cuentan).
+reservaSchema.index({ 'factura.numero': 1 }, { unique: true, partialFilterExpression: { 'factura.numero': { $type: 'string' } } });
 // Detecta traslapes (regla 1): reservas de una habitación dentro de un rango de fechas.
 reservaSchema.index({ habitacionId: 1, fechaEntrada: 1, fechaSalida: 1 });
 reservaSchema.index({ hotelId: 1, estado: 1, fechaEntrada: -1 });

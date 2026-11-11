@@ -15,15 +15,21 @@ export const abreviarPesos = (valor) => {
 
 export const formatearPorcentaje = (valor) => `${formatoPorcentaje.format(valor)} %`;
 
-const formatoFecha = new Intl.DateTimeFormat('es-CO', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' });
+const crearFormateadorDeDia = (zona) => {
+  const formato = new Intl.DateTimeFormat('es-CO', { timeZone: zona, day: 'numeric', month: 'short', year: 'numeric' });
+  return (iso) =>
+    formato
+      .formatToParts(new Date(iso))
+      .filter((parte) => parte.type !== 'literal')
+      .map((parte) => parte.value)
+      .join(' ');
+};
 
 // Las fechas de reserva llegan como medianoche UTC: se muestran en UTC para que no retrocedan un día. Resultado: "5 ene 2027".
-export const formatearFecha = (iso) =>
-  formatoFecha
-    .formatToParts(new Date(iso))
-    .filter((parte) => parte.type !== 'literal')
-    .map((parte) => parte.value)
-    .join(' ');
+export const formatearFecha = crearFormateadorDeDia('UTC');
+
+// Para instantes (por ejemplo, la emisión de la factura): el día que marca el reloj de Bogotá.
+export const formatearDiaBogota = crearFormateadorDeDia('America/Bogota');
 
 export const formatearFechaHora = (iso) =>
   new Date(iso).toLocaleString('es-CO', { timeZone: 'America/Bogota', dateStyle: 'medium', timeStyle: 'short' });

@@ -38,10 +38,12 @@ stayhub/
 ├── pnpm-lock.yaml               Lockfile único de todo el monorepo
 ├── docs/
 │   ├── despliegue.md            Guía paso a paso: Atlas, Render, Vercel y Cloudinary
+│   ├── formato-factura.html     Diseño de referencia de la factura en PDF
 │   └── evidencias/              Capturas del proyecto
 ├── backend/
 │   ├── requests.http            Peticiones de prueba (extensión REST Client de VS Code)
 │   ├── .env.example
+│   ├── assets/fonts/            Inter y Cormorant Garamond (licencia OFL) que usa el PDF de la factura
 │   └── src/
 │       ├── server.js, app.js    Arranque y configuración de Express
 │       ├── config/              Variables de entorno y conexión a MongoDB
@@ -51,6 +53,7 @@ stayhub/
 │       ├── services/            Reglas de negocio y reportes
 │       ├── schemas/             Validación de entradas (zod)
 │       ├── middlewares/         auth (JWT), validate y errorHandler
+│       ├── pdf/                 Dibujo de la factura en PDF (pdfkit)
 │       ├── utils/               Fechas, paginación, errores y otras ayudas
 │       └── seed/                Datos de prueba
 └── frontend/
@@ -181,6 +184,7 @@ URL base: `/api`. Las lecturas de hoteles, habitaciones y reseñas son públicas
 | Disponibles | `GET /habitaciones/disponibles` | Filtros: `hotelId`, `tipo`, `entrada`, `salida`, `precioMin`, `precioMax`. |
 | Huéspedes | `GET`, `POST /huespedes` · `GET`, `PUT`, `PATCH`, `DELETE /huespedes/:id` | Todo con token. Filtros: `q`, `ciudad`, `activo`. |
 | Reservas | `GET`, `POST /reservas` · `GET`, `PUT`, `DELETE /reservas/:id` · `PATCH /reservas/:id/estado` · `POST /reservas/:id/pagos` | Todo con token. Filtros: `estado`, `hotelId`, `desde`, `hasta`, `huesped`. |
+| Factura | `GET /reservas/:id/factura` | Con token. Responde el PDF (`application/pdf`, `attachment; filename="FAC-000124.pdf"`) de una reserva finalizada; 409 si no lo está. |
 | Reseñas | `GET /resenas`, `GET /resenas/:id` · `POST /resenas`, `DELETE /resenas/:id` | Filtros: `hotelId`, `huespedId`, `reservaId`. |
 | Reportes | `GET /reportes/<nombre>` | Todo con token. Ver [Reportes](#reportes). |
 
@@ -207,9 +211,11 @@ Todas están en `backend/src/services/`.
 | 8 | Solo se reseña una reserva finalizada, una vez. Cada cambio recalcula `calificacionPromedio` del hotel. | 409 | `resenas.service.js` |
 | 9 | No se elimina un hotel, habitación o huésped que tenga reservas (activas o históricas): se desactiva con `PATCH { "activo": false }`. | 409 | `integridad.service.js` |
 | 10 | Email, documento y número de habitación por hotel son únicos (el error E11000 de Mongo se traduce). | 409 | `errorHandler.js` |
+| 11 | Solo se factura una reserva finalizada (siempre con saldo 0). La primera vez se emite: número consecutivo `FAC-000001`, `FAC-000002`… y fecha. Las siguientes regeneran el PDF con los datos guardados, sin otro número. | 409 | `facturas.service.js` |
 
 Además:
 
+- **Factura:** el PDF se dibuja con pdfkit siguiendo `docs/formato-factura.html` (sin IVA: el total es el de la reserva). Al emitir se guarda en la reserva el subdocumento `factura { numero, fechaEmision, emisor, cliente }`, una copia de los datos del hotel y del huésped de ese momento: si ellos cambian después, la factura reimpresa sale igual. El número sale de la colección `contadores` con `findOneAndUpdate` + `$inc` + `upsert`; el update que guarda la factura exige que la reserva aún no tenga una, y `factura.numero` tiene índice único. Dos clics simultáneos no emiten dos facturas; si otra instancia ganara la carrera, el número que este proceso había tomado queda sin usar (el consecutivo nunca se repite, pero podría saltarse uno).
 - Cancelar una reserva conserva sus pagos (no hay reembolso automático).
 - `DELETE /reservas/:id` solo borra reservas pendientes o canceladas que no tengan pagos.
 - La detección de traslapes se ejecuta de una en una por habitación dentro del proceso, y la creación verifica de nuevo al guardar. Así, solicitudes simultáneas por la misma habitación no producen doble reserva.
@@ -233,16 +239,17 @@ Todos son aggregation pipelines en `backend/src/services/reportes.service.js`, c
 
 ## Modelo de datos
 
-Seis colecciones. Los nombres de colección están fijados en cada modelo.
+Siete colecciones (`contadores` aparece con la primera factura; `pnpm seed` carga las otras seis y deja el contador en cero). Los nombres de colección están fijados en cada modelo.
 
 | Colección | Embebido | Referencias | Índices |
 |---|---|---|---|
 | `hoteles` | `direccion`, `contacto`, `servicios` | — | `{direccion.ciudad, estrellas}` |
 | `habitaciones` | `amenidades` | `hotelId` | único `{hotelId, numero}` · `{hotelId, tipo, precioNoche}` |
 | `huespedes` | `documento {tipo, numero}` | — | único `email` · único `documento.numero` · `ciudadOrigen` |
-| `reservas` | `habitacion {numero, tipo, precioNoche}` (copia) · `pagos[]` | `huespedId`, `hotelId`, `habitacionId` | único `codigo` · `{habitacionId, fechaEntrada, fechaSalida}` · `{hotelId, estado, fechaEntrada}` · `{huespedId, estado}` |
+| `reservas` | `habitacion {numero, tipo, precioNoche}` (copia) · `pagos[]` · `factura {numero, fechaEmision, emisor, cliente}` (copia, solo si ya se emitió) | `huespedId`, `hotelId`, `habitacionId` | único `codigo` · único parcial `factura.numero` · `{habitacionId, fechaEntrada, fechaSalida}` · `{hotelId, estado, fechaEntrada}` · `{huespedId, estado}` |
 | `resenas` | — | `reservaId`, `hotelId`, `huespedId` | único `reservaId` · `{hotelId, fecha}` |
 | `usuarios` | — | — | único `email` |
+| `contadores` | `_id` = nombre de la secuencia (`factura`) y `valor` | — | el `_id` |
 
 `passwordHash` (bcrypt) no se devuelve en las consultas: el login lo pide explícitamente.
 

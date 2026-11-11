@@ -31,10 +31,27 @@ export const habitaciones = {
   disponibles: (params) => cliente.get('/habitaciones/disponibles', { params }).then(datos),
 };
 
+const nombreDeArchivo = (contentDisposition, respaldo) => /filename="?([^";]+)"?/.exec(contentDisposition ?? '')?.[1] ?? respaldo;
+
+// Pide el PDF de la factura (la API lo emite si es la primera vez). Va por Axios porque la ruta exige el token.
+async function pedirFactura(id) {
+  try {
+    const respuesta = await cliente.get(`/reservas/${id}/factura`, { responseType: 'blob' });
+    return { archivo: respuesta.data, nombre: nombreDeArchivo(respuesta.headers['content-disposition'], `factura-${id}.pdf`) };
+  } catch (error) {
+    // Con responseType 'blob' hasta el cuerpo de un error llega como blob: se convierte a JSON para que describirError lo lea.
+    if (error.response?.data instanceof Blob) {
+      error.response.data = await error.response.data.text().then(JSON.parse, () => null);
+    }
+    throw error;
+  }
+}
+
 export const reservas = {
   ...crearRecurso('/reservas'),
   cambiarEstado: (id, estado) => cliente.patch(`/reservas/${id}/estado`, { estado }).then(datos),
   registrarPago: (id, pago) => cliente.post(`/reservas/${id}/pagos`, pago).then(datos),
+  factura: pedirFactura,
 };
 
 export const resenas = {
