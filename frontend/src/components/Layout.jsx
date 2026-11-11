@@ -7,6 +7,7 @@ const ENLACES = [
   { ruta: '/habitaciones', texto: 'Habitaciones' },
   { ruta: '/huespedes', texto: 'Huéspedes' },
   { ruta: '/reservas', texto: 'Reservas' },
+  { ruta: '/calendario', texto: 'Calendario' },
   { ruta: '/reportes', texto: 'Reportes' },
 ];
 

@@ -55,6 +55,17 @@
   --progreso-completo: #2f7a52;
   --progreso-fondo: #efe8dc;
 
+  --calendario-hoy: #f7efe0;
+  --calendario-franja: #efe9df;
+  --calendario-franja-clara: #f7f3ec;
+  --reserva-pendiente-fondo: #fbf1de;
+  --reserva-pendiente-texto: #6a4e22;
+  --reserva-en-curso-fondo: #e2efe3;
+  --reserva-en-curso-borde: #2e6b3a;
+  --reserva-en-curso-texto: #1f4d29;
+  --reserva-finalizada-fondo: #f1ede6;
+  --reserva-finalizada-borde: #d5ccbe;
+
   --radio-campo: 10px;
   --radio-tarjeta: 16px;
   --radio-tarjeta-grande: 18px;

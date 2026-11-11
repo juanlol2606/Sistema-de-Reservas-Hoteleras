@@ -35,15 +35,18 @@ const habitacionActual = (r) => ({
   actual: true,
 });
 
-export default function FormularioReserva({ reserva, alGuardar, alCancelar }) {
+// `valoresIniciales` (solo al crear) adelanta campos, por ejemplo cuando se abre desde el calendario: hotel, habitación y fechas.
+export default function FormularioReserva({ reserva, valoresIniciales, alGuardar, alCancelar }) {
   const opcionesDeHoteles = useOpcionesDeHoteles();
   const opcionesDeHuespedes = useOpcionesDeHuespedes();
+  const valoresDeInicio = reserva ? desdeReserva(reserva) : { ...VALORES_NUEVOS, ...valoresIniciales };
   const [opcionesDeHabitaciones, setOpcionesDeHabitaciones] = useState(reserva ? [habitacionActual(reserva)] : []);
-  const [buscando, setBuscando] = useState(false);
+  // Con fechas ya puestas la búsqueda de habitaciones arranca al montar: así la habitación adelantada no se descarta antes de que lleguen las opciones.
+  const [buscando, setBuscando] = useState(!reserva && valoresDeInicio.fechaSalida > valoresDeInicio.fechaEntrada);
   const [errorBusqueda, setErrorBusqueda] = useState(null);
 
   const formulario = useFormulario({
-    valores: reserva ? desdeReserva(reserva) : VALORES_NUEVOS,
+    valores: valoresDeInicio,
     validar: (v) => validar(v, reserva, opcionesDeHabitaciones),
     alEnviar: (v) =>
       alGuardar({
@@ -62,6 +65,7 @@ export default function FormularioReserva({ reserva, alGuardar, alCancelar }) {
   useEffect(() => {
     setErrorBusqueda(null);
     if (!rangoValido || (!fechasCambiaron && !hotelId)) {
+      setBuscando(false);
       setOpcionesDeHabitaciones(reserva ? [habitacionActual(reserva)] : []);
       return undefined;
     }
@@ -85,8 +89,8 @@ export default function FormularioReserva({ reserva, alGuardar, alCancelar }) {
   }, [hotelId, fechaEntrada, fechaSalida]);
 
   useEffect(() => {
-    if (habitacionId && !opcionesDeHabitaciones.some((h) => h._id === habitacionId)) formulario.cambiar('habitacionId', '');
-  }, [opcionesDeHabitaciones]);
+    if (!buscando && habitacionId && !opcionesDeHabitaciones.some((h) => h._id === habitacionId)) formulario.cambiar('habitacionId', '');
+  }, [opcionesDeHabitaciones, buscando]);
 
   const elegida = opcionesDeHabitaciones.find((h) => h._id === habitacionId);
   const noches = rangoValido ? diasEntre(fechaEntrada, fechaSalida) : 0;

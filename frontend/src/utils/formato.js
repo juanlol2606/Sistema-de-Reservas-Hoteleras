@@ -52,6 +52,36 @@ export function sumarDiasATexto(fecha, dias) {
   return new Date(Date.parse(fecha) + dias * MS_POR_DIA).toISOString().slice(0, 10);
 }
 
+const DIAS_SEMANA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+const MESES_CORTOS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+const numeroDeDiaSemana = (fecha) => new Date(`${fecha}T00:00:00Z`).getUTCDay();
+const partesDeFecha = (fecha) => {
+  const [anio, mes, dia] = fecha.split('-').map(Number);
+  return { anio, dia, mes: MESES_CORTOS[mes - 1] };
+};
+
+export const diaDeLaSemana = (fecha) => DIAS_SEMANA[numeroDeDiaSemana(fecha)];
+export const esFinDeSemana = (fecha) => [0, 6].includes(numeroDeDiaSemana(fecha));
+
+// Lunes de la semana de `fecha` (AAAA-MM-DD); el domingo cuenta como último día de la semana.
+export const lunesDeLaSemana = (fecha) => sumarDiasATexto(fecha, -((numeroDeDiaSemana(fecha) + 6) % 7));
+
+// "lun 9 nov"
+export const formatearDiaCorto = (fecha) => {
+  const { dia, mes } = partesDeFecha(fecha);
+  return `${diaDeLaSemana(fecha)} ${dia} ${mes}`;
+};
+
+// "9 – 22 nov 2026"; si el rango cruza de mes o de año, repite lo que cambia.
+export function describirRango(desde, hasta) {
+  const inicio = partesDeFecha(desde);
+  const fin = partesDeFecha(hasta);
+  if (inicio.anio !== fin.anio) return `${inicio.dia} ${inicio.mes} ${inicio.anio} – ${fin.dia} ${fin.mes} ${fin.anio}`;
+  if (inicio.mes !== fin.mes) return `${inicio.dia} ${inicio.mes} – ${fin.dia} ${fin.mes} ${fin.anio}`;
+  return `${inicio.dia} – ${fin.dia} ${fin.mes} ${fin.anio}`;
+}
+
 export const recortarTextos = (objeto) =>
   Object.fromEntries(Object.entries(objeto).map(([clave, valor]) => [clave, typeof valor === 'string' ? valor.trim() : valor]));
 

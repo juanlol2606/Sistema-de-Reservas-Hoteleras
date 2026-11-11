@@ -550,3 +550,34 @@ Authorization: Bearer {{token}}
 ### 59. Su factura sale con el consecutivo que sigue
 GET {{host}}/reservas/{{otraReservaId}}/factura
 Authorization: Bearer {{token}}
+
+
+# ---------------------------------------------------------------------------------------------
+# Calendario de ocupación. GET /api/calendario exige token y el parámetro hotelId.
+#  - desde (AAAA-MM-DD) por defecto es el lunes de la semana actual en hora de Bogotá; dias solo admite 7, 14 o 30 (por defecto 14).
+#  - tipo (sencilla, doble o suite) filtra las habitaciones, y con ellas la ocupación y las tarjetas de resumen.
+# ---------------------------------------------------------------------------------------------
+
+### 60. Calendario de 14 días por defecto: habitaciones, reservas, ocupación por noche y resumen
+GET {{host}}/calendario?hotelId={{hotelId}}
+Authorization: Bearer {{token}}
+
+
+### 61. 30 días desde una fecha elegida
+GET {{host}}/calendario?hotelId={{hotelId}}&desde={{hoy}}&dias=30
+Authorization: Bearer {{token}}
+
+
+### 62. Solo las habitaciones dobles (la ocupación y el resumen se calculan con ese tipo)
+GET {{host}}/calendario?hotelId={{hotelId}}&tipo=doble&dias=7
+Authorization: Bearer {{token}}
+
+
+### 63. Un hotel que no existe -> 404
+GET {{host}}/calendario?hotelId=0123456789abcdef01234567
+Authorization: Bearer {{token}}
+
+
+### 64. Días que no son 7, 14 ni 30 -> 400
+GET {{host}}/calendario?hotelId={{hotelId}}&dias=10
+Authorization: Bearer {{token}}

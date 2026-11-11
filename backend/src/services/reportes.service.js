@@ -28,7 +28,7 @@ const unirHotel = (campo) => [
   { $unwind: '$hotel' },
 ];
 
-const porcentaje = (parte, total) => ({ $round: [{ $multiply: [{ $divide: [parte, total] }, 100] }, 1] });
+export const porcentaje = (parte, total) => ({ $round: [{ $multiply: [{ $divide: [parte, total] }, 100] }, 1] });
 
 async function idsDeHotelesDeLaCiudad(ciudad) {
   if (!ciudad) return undefined;

@@ -17,9 +17,13 @@ export const TONOS_ESTADO_RESERVA = {
 };
 
 export const ETIQUETAS_TIPO_HABITACION = { sencilla: 'Sencilla', doble: 'Doble', suite: 'Suite' };
+export const ETIQUETAS_TIPO_HABITACION_PLURAL = { sencilla: 'Sencillas', doble: 'Dobles', suite: 'Suites' };
 export const ETIQUETAS_ESTADO_HABITACION = { disponible: 'Disponible', mantenimiento: 'Mantenimiento' };
 export const ETIQUETAS_METODO_PAGO = { efectivo: 'Efectivo', tarjeta: 'Tarjeta', transferencia: 'Transferencia', pse: 'PSE' };
 export const ETIQUETAS_TIPO_DOCUMENTO = { CC: 'Cédula (CC)', CE: 'Cédula de extranjería (CE)', PA: 'Pasaporte (PA)' };
+
+export const DIAS_CALENDARIO = [7, 14, 30];
+export const OPCIONES_DIAS_CALENDARIO = DIAS_CALENDARIO.map((dias) => ({ valor: String(dias), etiqueta: `${dias} días` }));
 
 export const OPCIONES_ESTADO_RESERVA = opciones(ETIQUETAS_ESTADO_RESERVA);
 export const OPCIONES_TIPO_HABITACION = opciones(ETIQUETAS_TIPO_HABITACION);

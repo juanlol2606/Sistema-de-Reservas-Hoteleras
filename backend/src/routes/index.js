@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes.js';
+import calendarioRoutes from './calendario.routes.js';
 import habitacionesRoutes from './habitaciones.routes.js';
 import healthRoutes from './health.routes.js';
 import hotelesRoutes from './hoteles.routes.js';
@@ -16,6 +17,7 @@ router.use('/hoteles', hotelesRoutes);
 router.use('/habitaciones', habitacionesRoutes);
 router.use('/huespedes', huespedesRoutes);
 router.use('/reservas', reservasRoutes);
+router.use('/calendario', calendarioRoutes);
 router.use('/resenas', resenasRoutes);
 router.use('/reportes', reportesRoutes);
 

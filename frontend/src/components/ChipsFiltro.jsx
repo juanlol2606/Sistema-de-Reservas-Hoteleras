@@ -1,6 +1,7 @@
 // Fila de chips para filtrar por una opción. Recibe las mismas propiedades que devuelve `listado.filtro(...)`.
-export default function ChipsFiltro({ etiqueta, opciones, valor, alCambiar, textoTodos = 'Todos' }) {
-  const todas = [{ valor: '', etiqueta: textoTodos }, ...opciones];
+// Con `conTodos={false}` no se dibuja el chip que quita el filtro (siempre hay una opción elegida).
+export default function ChipsFiltro({ etiqueta, opciones, valor, alCambiar, textoTodos = 'Todos', conTodos = true }) {
+  const todas = conTodos ? [{ valor: '', etiqueta: textoTodos }, ...opciones] : opciones;
 
   return (
     <div className="chips" role="group" aria-label={etiqueta}>

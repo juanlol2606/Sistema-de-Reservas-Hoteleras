@@ -11,6 +11,9 @@ export function sumarDias(fecha, dias) {
   return new Date(fecha.getTime() + dias * MS_POR_DIA);
 }
 
+// Lunes de la semana que contiene `dia` (el domingo cuenta como último día de la semana).
+export const lunesDeLaSemana = (dia) => sumarDias(dia, -((dia.getUTCDay() + 6) % 7));
+
 // Bogotá no tiene horario de verano: su medianoche siempre cae a las 05:00 UTC.
 const DESFASE_BOGOTA_MS = 5 * 60 * 60 * 1000;
 

@@ -8,7 +8,7 @@ import { POBLAR_HOTEL } from './habitaciones.service.js';
 import { validarFechas } from './reglasReserva.service.js';
 
 // Regla 1: dos reservas no canceladas se traslapan si entrada < otraSalida y salida > otraEntrada.
-function filtroDeTraslape({ entrada, salida }) {
+export function filtroDeTraslape({ entrada, salida }) {
   return { estado: { $ne: 'cancelada' }, fechaEntrada: { $lt: salida }, fechaSalida: { $gt: entrada } };
 }
 

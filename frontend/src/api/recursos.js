@@ -54,6 +54,10 @@ export const reservas = {
   factura: pedirFactura,
 };
 
+export const calendario = {
+  obtener: (params) => cliente.get('/calendario', { params }).then(datos),
+};
+
 export const resenas = {
   listar: (params) => cliente.get('/resenas', { params }).then(datos),
   crear: (cuerpo) => cliente.post('/resenas', cuerpo).then(datos),

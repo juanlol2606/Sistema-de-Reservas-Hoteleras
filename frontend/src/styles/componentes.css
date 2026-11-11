@@ -1261,3 +1261,51 @@
   line-height: 1.6;
   color: var(--neutro);
 }
+
+/* ---------- Popover ---------- */
+
+.popover {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(300px, calc(100vw - 16px));
+  padding: 16px;
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  background: var(--superficie);
+  box-shadow: var(--sombra-modal);
+  outline: none;
+}
+
+.popover h3 {
+  font-size: 22px;
+}
+
+.popover dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+
+.popover dt {
+  color: var(--texto-suave);
+}
+
+.popover dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.popover .acciones {
+  gap: 8px;
+}
+
+.popover .boton {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+}

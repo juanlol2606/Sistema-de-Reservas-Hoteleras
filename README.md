@@ -22,11 +22,12 @@ Navegador ──► Frontend (Vercel) ──► API REST /api (Render) ──►
 5. [Usuario administrador](#usuario-administrador)
 6. [La API en resumen](#la-api-en-resumen)
 7. [Reglas de negocio](#reglas-de-negocio)
-8. [Reportes](#reportes)
-9. [Modelo de datos](#modelo-de-datos)
-10. [Despliegue](#despliegue)
-11. [Problemas frecuentes](#problemas-frecuentes)
-12. [Seguridad](#seguridad)
+8. [Calendario de ocupación](#calendario-de-ocupación)
+9. [Reportes](#reportes)
+10. [Modelo de datos](#modelo-de-datos)
+11. [Despliegue](#despliegue)
+12. [Problemas frecuentes](#problemas-frecuentes)
+13. [Seguridad](#seguridad)
 
 ## Estructura del proyecto
 
@@ -39,6 +40,7 @@ stayhub/
 ├── docs/
 │   ├── despliegue.md            Guía paso a paso: Atlas, Render, Vercel y Cloudinary
 │   ├── formato-factura.html     Diseño de referencia de la factura en PDF
+│   ├── calendario-mockup.html   Diseño de referencia del calendario de ocupación
 │   └── evidencias/              Capturas del proyecto
 ├── backend/
 │   ├── requests.http            Peticiones de prueba (extensión REST Client de VS Code)
@@ -65,7 +67,7 @@ stayhub/
         ├── context/             Sesión y avisos
         ├── hooks/               Listados, formularios, opciones, cifras de cabecera y fotos
         ├── components/          Botón, campos, chips, tarjetas, tabla, modal, fotos, formularios y gráficas
-        ├── pages/               Login, Hoteles, Habitaciones, Huéspedes, Reservas y Reportes
+        ├── pages/               Login, Hoteles, Habitaciones, Huéspedes, Reservas, Calendario y Reportes
         ├── utils/               Formato, catálogos, validaciones y URLs de fotos
         └── styles/              theme.css (colores, fuentes, radios, sombras), componentes.css y paginas.css
 ```
@@ -185,6 +187,7 @@ URL base: `/api`. Las lecturas de hoteles, habitaciones y reseñas son públicas
 | Huéspedes | `GET`, `POST /huespedes` · `GET`, `PUT`, `PATCH`, `DELETE /huespedes/:id` | Todo con token. Filtros: `q`, `ciudad`, `activo`. |
 | Reservas | `GET`, `POST /reservas` · `GET`, `PUT`, `DELETE /reservas/:id` · `PATCH /reservas/:id/estado` · `POST /reservas/:id/pagos` | Todo con token. Filtros: `estado`, `hotelId`, `desde`, `hasta`, `huesped`. |
 | Factura | `GET /reservas/:id/factura` | Con token. Responde el PDF (`application/pdf`, `attachment; filename="FAC-000124.pdf"`) de una reserva finalizada; 409 si no lo está. |
+| Calendario | `GET /calendario` | Con token. Query: `hotelId` (obligatorio), `desde`, `dias` (7, 14 o 30) y `tipo`. Ver [Calendario de ocupación](#calendario-de-ocupación). |
 | Reseñas | `GET /resenas`, `GET /resenas/:id` · `POST /resenas`, `DELETE /resenas/:id` | Filtros: `hotelId`, `huespedId`, `reservaId`. |
 | Reportes | `GET /reportes/<nombre>` | Todo con token. Ver [Reportes](#reportes). |
 
@@ -219,6 +222,17 @@ Además:
 - Cancelar una reserva conserva sus pagos (no hay reembolso automático).
 - `DELETE /reservas/:id` solo borra reservas pendientes o canceladas que no tengan pagos.
 - La detección de traslapes se ejecuta de una en una por habitación dentro del proceso, y la creación verifica de nuevo al guardar. Así, solicitudes simultáneas por la misma habitación no producen doble reserva.
+
+## Calendario de ocupación
+
+`GET /api/calendario?hotelId=<id>&desde=AAAA-MM-DD&dias=14&tipo=doble` devuelve las habitaciones del hotel, las reservas que tocan el rango y la ocupación noche por noche. `hotelId` es obligatorio; `desde` es por defecto el lunes de la semana actual en hora de Bogotá; `dias` solo admite 7, 14 o 30 (por defecto 14); `tipo` (`sencilla`, `doble` o `suite`) filtra las habitaciones y, con ellas, la ocupación y el resumen. Responde 404 si el hotel no existe y 400 si algún parámetro es inválido. La lógica está en `calendario.service.js`:
+
+- **En servicio:** las habitaciones activas y no en mantenimiento. Solo ellas cuentan en la ocupación; las demás aparecen en el tablero con su franja rayada.
+- **Noches:** una reserva ocupa desde la noche de entrada hasta el día anterior a la salida; la noche de salida queda libre.
+- **Reservas del rango:** usan la misma condición de traslape de la regla 1 (`filtroDeTraslape`, exportada de `disponibilidad.service.js`): no canceladas, entrada anterior al fin del rango y salida posterior a su inicio. Así una celda se ve libre exactamente cuando crear una reserva en ella no daría 409.
+- **Ocupación:** noches ocupadas ÷ (habitaciones en servicio × noches), en %, por noche y para todo el periodo. Junto con el resumen (`libresEstaNoche`, `llegadasHoy`: pendientes o confirmadas con entrada hoy, y `salidasHoy`: no canceladas con salida hoy) sale de un solo aggregation pipeline; el resumen siempre habla de hoy, aunque el rango esté en otro mes.
+
+En el frontend, `/calendario` guarda `hotelId`, `desde`, `dias` y `tipo` en la URL, de modo que recargar o compartir el enlace muestra lo mismo. Las celdas libres de hoy en adelante abren el formulario de nueva reserva con el hotel, la habitación y las fechas ya puestas.
 
 ## Reportes
 

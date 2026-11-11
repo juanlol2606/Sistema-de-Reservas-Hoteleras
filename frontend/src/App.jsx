@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
 import RutaProtegida from './components/RutaProtegida.jsx';
+import Calendario from './pages/Calendario.jsx';
 import Habitaciones from './pages/Habitaciones.jsx';
 import Hoteles from './pages/Hoteles.jsx';
 import Huespedes from './pages/Huespedes.jsx';
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="huespedes" element={<Huespedes />} />
             <Route path="reservas" element={<Reservas />} />
             <Route path="reservas/:id" element={<ReservaDetalle />} />
+            <Route path="calendario" element={<Calendario />} />
             <Route path="reportes" element={<Reportes />} />
             <Route path="*" element={<NoEncontrada />} />
           </Route>
