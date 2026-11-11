@@ -21,8 +21,7 @@ Todo con planes gratuitos. Duración estimada: entre 1 y 2 horas la primera vez.
 6. [Cierre: CORS y pruebas en producción](#6-cierre-cors-y-pruebas-en-producción)
 7. [Problemas comunes](#7-problemas-comunes)
 8. [Cloudinary (fotos de hoteles y habitaciones)](#8-cloudinary-fotos-de-hoteles-y-habitaciones)
-9. [Capturas para la sección de evidencias](#9-capturas-para-la-sección-de-evidencias)
-10. [Qué está verificado y qué no](#10-qué-está-verificado-y-qué-no)
+
 
 ---
 
@@ -698,54 +697,3 @@ El plan Free incluye **25 créditos al mes**. Un crédito equivale a 1 GB de alm
 | Aparece **Verification Required** al copiar el secret | Es normal: escribe el código que llega a tu correo (vale 5 minutos). |
 
 ---
-
-## 9. Capturas para la sección de evidencias
-
-Guárdalas en `docs/evidencias/` con nombres ordenados (por ejemplo `01-atlas-cluster.png`). **Antes de guardar cada una, tapa contraseñas, cadenas de conexión y la clave JWT.** Es mejor capturar la ventana completa del navegador, con la URL visible.
-
-| N.º | Qué capturar | Paso |
-|---|---|---|
-| 01 | Repositorio en GitHub con carpetas y `pnpm-lock.yaml` | 1 |
-| 02 | Clúster `stayhub` creado en Atlas (nombre, versión, estado) | 2.3 |
-| 03 | **Database Users** con el usuario y el privilegio `readWrite` sobre `stayhub` | 2.4 |
-| 04 | **IP Access List** con entradas **Active** | 2.5 |
-| 05 | **Connect → Drivers**, sin contraseña visible | 2.6 |
-| 06 | Terminal con `MongoDB conectado: stayhub` | 3.2 |
-| 07 | `http://localhost:4000/api/health` en el navegador | 3.3 |
-| 08 | Terminal con el resultado de `pnpm seed` | 3.4 |
-| 09 | **Browse Collections** con las 6 colecciones y su conteo | 3.5 |
-| 10 | `/api/hoteles` o `/api/reservas` en local con datos de Atlas | 3.6 |
-| 11 | Formulario de Render con Root Directory vacío, comandos y plan Free | 4.3 |
-| 12 | Pestaña **Environment** de Render (solo las claves, valores tapados) | 4.4 |
-| 13 | **Logs** de Render con "MongoDB conectado" y el estado **Live** | 4.6 |
-| 14 | `https://<servicio>.onrender.com/api/health` en el navegador | 4.7 |
-| 15 | **Configure Project** de Vercel (Root Directory, preset Vite, variables) | 5.3 |
-| 16 | Despliegue de Vercel en **Ready** | 5.4 |
-| 17 | Pantalla de login en `https://<proyecto>.vercel.app` | 5.7 |
-| 18 | `CORS_ORIGIN` en Render con la URL de Vercel | 6.1 |
-| 19 | Login exitoso, y en `F12 → Network` las peticiones a `onrender.com` con estado 200 | 6.2 |
-| 20 | Reserva recién creada en la app | 6.2 |
-| 21 | Esa misma reserva en Atlas (colección `reservas`, filtrada por código) | 6.2 |
-| 22 | Página **Reportes** con datos | 6.2 |
-| 23 | Recarga de `/reservas` sin 404 | 6.2 |
-| 24 | Página **API Keys** de Cloudinary, con el API Secret tapado | 8.2 |
-| 25 | Zona **Subir fotos** de un hotel con vista previa y el contador de la tarjeta | 8.3 |
-| 26 | **Media Library** de Cloudinary con la carpeta `stayhub/hoteles` | 8.3 |
-| 27 | Pestaña **Environment** de Render con las tres variables de Cloudinary (valores tapados) | 8.4 |
-| 28 | Una foto subida desde la URL de Vercel y visible en la tarjeta | 8.4 |
-| 29 | Detalle de una reserva finalizada con el botón **Descargar factura FAC-00000N** y la línea "emitida el…" | 6.2 |
-| 30 | El PDF de la factura abierto (sale de la descarga hecha desde la URL de Vercel) | 6.2 |
-
----
-
-## 10. Qué está verificado y qué no
-
-- **Verificado en local** (contra un MongoDB real en memoria, no contra Atlas): `pnpm install`, `pnpm seed`, `pnpm dev`, `pnpm build` y los logs de la API. Además, `node backend/src/server.js` ejecutado desde la raíz del repositorio (el Start Command de Render) resuelve sus dependencias y reproduce los mensajes `Falta la variable de entorno MONGODB_URI` y `querySrv ENOTFOUND`. El resto de mensajes de error de Atlas de la sección 7 (`bad auth`, IP no permitida) son los habituales de Mongoose y Atlas, no se reprodujeron aquí.
-- **Contrastado con la documentación oficial (6 de noviembre de 2026):** Render (variable `PORT` 10000, orden de versión de Node, Root Directory, health check, suspensión a los 15 minutos, cerca de 1 minuto para despertar, IP de salida compartidas), Vercel (Root Directory, opción de archivos fuera del Root Directory, Corepack con `ENABLE_EXPERIMENTAL_COREPACK`, rewrites de Vite, variables de entorno y redeploy) y Atlas (pasos de creación del clúster y del usuario, lista de IP, cadena de conexión y caracteres a codificar, límites del plan gratuito).
-- **No verificado en las plataformas reales:** esta guía no se ejecutó en cuentas reales de Atlas, Render ni Vercel. En concreto:
-  - Render no documenta pnpm ni Corepack, así que el **Build Command con `corepack enable`** es la parte con más riesgo; las alternativas están en la sección 7.
-  - Vercel no documenta en las páginas consultadas qué comandos de Build e Install propone para Vite ni cómo instala un workspace de pnpm con el Root Directory en `frontend`.
-  - La documentación de Atlas consultada no lista como no soportados `$lookup`, `$dateDiff` ni los índices con collation, pero tampoco los confirma como soportados en el plan gratuito. El primer `pnpm seed` y los **Reportes** contra Atlas son la prueba real.
-  - **Cloudinary:** las fotos se probaron en local con un Cloudinary simulado, no con una cuenta real. De la documentación oficial (10 de noviembre de 2026) salen la ruta **Settings → API Keys**, el código de verificación por correo, la rotación con **Generate New API Key** y los 25 créditos mensuales del plan Free. No está documentado en lo que consulté el nombre exacto del botón para revelar el secret, ni si las cuentas nuevas usan carpetas dinámicas por defecto (por eso la guía solo pide ver la imagen en la **Media Library**).
-  - **Factura en PDF:** se verificó en local, con la API real sobre un MongoDB en memoria y el frontend en el navegador: descarga con el nombre `FAC-000001.pdf`, segunda descarga con los mismos bytes, consecutivos, 409 en reservas no finalizadas, seis clics simultáneos sobre una reserva con un solo número y la cabecera `Content-Disposition` legible desde otro origen. No se probó la descarga contra Render y Vercel reales.
-  - Los nombres exactos de menús y botones de Atlas (por ejemplo **Database & Network Access**, **Specific Privileges**, **Allow Access from Anywhere**, **Browse Collections**) y la región de Render más cercana a N. Virginia salen de la interfaz conocida y pueden haber cambiado.
